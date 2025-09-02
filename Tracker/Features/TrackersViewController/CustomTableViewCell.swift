@@ -13,7 +13,7 @@ final class CustomTableViewCell: UITableViewCell {
 
     private let subtitleLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         label.textColor = UIColor(named: "YPGray")
         label.numberOfLines = 1
         return label

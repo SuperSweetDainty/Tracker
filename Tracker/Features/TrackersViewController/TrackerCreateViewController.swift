@@ -103,6 +103,14 @@ final class TrackerCreateViewController: UIViewController {
         view.backgroundColor = UIColor(named: "YPWhite")
         setupUI()
         setupConstraints()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+    }
+
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 
     // MARK: - Button Actions
@@ -184,6 +192,12 @@ extension TrackerCreateViewController: UITextFieldDelegate {
         trackerName = textField.text ?? ""
         updateCreateButton()
     }
+
+    // Добавляем скрытие клавиатуры по нажатию "Done"
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
 }
 
 // MARK: - ScheduleViewControllerDelegate
@@ -197,7 +211,7 @@ extension TrackerCreateViewController: ScheduleViewControllerDelegate {
         } else {
             subtitle = days.sorted { $0.rawValue < $1.rawValue }
                 .map { $0.shortTitle }
-                .joined(separator: " ")
+                .joined(separator: ", ")
         }
         cells[1].subtitle = subtitle.isEmpty ? nil : subtitle
         tableView.reloadData()
@@ -215,6 +229,14 @@ extension TrackerCreateViewController: UITableViewDataSource, UITableViewDelegat
         }
         let data = cells[indexPath.row]
         cell.configure(title: data.title, subtitle: data.subtitle)
+        if indexPath.row == cells.count - 1 {
+            // скрыть нижний разделитель у последней ячейки ("Расписание")
+            cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
+        } else {
+            // нормальный разделитель
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        }
+
         cell.accessoryType = .disclosureIndicator
         cell.backgroundColor = UIColor(named: "YPBackground")
         return cell

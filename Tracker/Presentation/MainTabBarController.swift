@@ -7,7 +7,7 @@ final class MainTabBarController: UITabBarController {
 
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
-        tabAppearance.backgroundColor = UIColor(named: "YPBackground")
+        tabAppearance.backgroundColor = UIColor(named: "YPWhite")
         
         let titleAttributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 10, weight: .medium)

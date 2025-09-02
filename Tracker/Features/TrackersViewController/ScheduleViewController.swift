@@ -32,9 +32,11 @@ final class ScheduleViewController: UIViewController {
         table.dataSource = self
         table.register(ScheduleCell.self, forCellReuseIdentifier: ScheduleCell.identifier)
         table.layer.cornerRadius = 16
-        table.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         table.backgroundColor = UIColor(named: "YPBackground")
-        table.separatorStyle = .none
+        table.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        table.separatorStyle = .singleLine
+        table.tableHeaderView = UIView(frame: .init(x: 0, y: 0, width: 0, height: 0.5))
+        table.tableFooterView = UIView(frame: .init(x: 0, y: 0, width: 0, height: 0.5))
         return table
     }()
 
