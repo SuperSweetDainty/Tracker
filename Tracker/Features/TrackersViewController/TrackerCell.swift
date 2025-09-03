@@ -5,7 +5,7 @@ final class TrackerCell: UICollectionViewCell {
 
     // MARK: - UI
 
-    private let cardView: UIView = {
+    private lazy var cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
         view.layer.masksToBounds = true
@@ -14,21 +14,21 @@ final class TrackerCell: UICollectionViewCell {
         return view
     }()
 
-    private let emojiContainer: UIView = {
+    private lazy var emojiContainer: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.white.withAlphaComponent(0.3)
         view.layer.cornerRadius = 12
         return view
     }()
 
-    private let emojiLabel: UILabel = {
+    private lazy var emojiLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.textAlignment = .center
         return label
     }()
 
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textColor = .white
@@ -36,24 +36,24 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
 
-    private let bottomView: UIView = {
+    private lazy var bottomView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
         return view
     }()
 
-    private let counterLabel: UILabel = {
+    private lazy var counterLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = UIColor(named: "YPGrey")
+        label.textColor = UIColor(resource: .ypBlack)
         return label
     }()
 
-    private let completeButton: UIButton = {
+    private lazy var completeButton: UIButton = {
         let button = UIButton()
         button.tintColor = .white
         button.layer.cornerRadius = 17
-        button.backgroundColor = UIColor(named: "YPWhite")
+        button.backgroundColor = UIColor(resource: .ypWhite)
         return button
     }()
 
@@ -136,7 +136,7 @@ final class TrackerCell: UICollectionViewCell {
         emojiLabel.text = tracker.emoji
         counterLabel.text = "\(counter) " + (counter == 1 ? "день" : "дней")
         cardView.backgroundColor = tracker.color
-        completeButton.setImage(UIImage(named: completed ? "DoneMark" : "PlusMark"), for: .normal)
+        completeButton.setImage(UIImage(resource: completed ? .doneMark : .plusMark), for: .normal)
         onToggleComplete = onToggle
     }
 

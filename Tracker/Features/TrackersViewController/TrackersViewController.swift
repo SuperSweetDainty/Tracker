@@ -23,22 +23,22 @@ final class TrackersViewController: UIViewController {
         return cv
     }()
     
-    private let addButton: UIButton = {
+    private lazy var addButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "AddImage"), for: .normal)
-        button.tintColor = UIColor(hex: "#1A1B22")
+        button.setImage(UIImage(resource: .add), for: .normal)
+        button.tintColor = UIColor(resource: .ypBlack)
         return button
     }()
     
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Трекеры"
         label.font = UIFont.boldSystemFont(ofSize: 34)
-        label.textColor = UIColor(hex: "#1A1B22")
+        label.textColor = UIColor(resource: .ypBlack)
         return label
     }()
     
-    private let datePicker: UIDatePicker = {
+    private lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
         picker.datePickerMode = .date
         picker.preferredDatePickerStyle = .compact
@@ -49,38 +49,38 @@ final class TrackersViewController: UIViewController {
         return picker
     }()
     
-    private let searchContainer: UIView = {
+    private lazy var searchContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(hex: "#767680").withAlphaComponent(0.12)
+        view.backgroundColor = UIColor(resource: .ypDarkGray)
         view.layer.cornerRadius = 10
         return view
     }()
     
-    private let searchIcon: UIImageView = {
-        let iv = UIImageView(image: UIImage(named: "SearchImage"))
+    private lazy var searchIcon: UIImageView = {
+        let iv = UIImageView(image: UIImage(resource: .search))
         iv.contentMode = .scaleAspectFit
         return iv
     }()
     
-    private let searchLabel: UILabel = {
+    private lazy var searchLabel: UILabel = {
         let label = UILabel()
         label.text = "Поиск"
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        label.textColor = UIColor(hex: "#AEAFB4")
+        label.textColor = UIColor(resource: .ypGray)
         return label
     }()
     
-    private let emptyIcon: UIImageView = {
-        let iv = UIImageView(image: UIImage(named: "StarImage"))
+    private lazy var emptyIcon: UIImageView = {
+        let iv = UIImageView(image: UIImage(resource: .star))
         iv.contentMode = .scaleAspectFit
         return iv
     }()
     
-    private let emptyLabel: UILabel = {
+    private lazy var emptyLabel: UILabel = {
         let label = UILabel()
         label.text = "Что будем отслеживать?"
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = UIColor(hex: "#1A1B22")
+        label.textColor = UIColor(resource: .ypBlack)
         return label
     }()
     
@@ -280,20 +280,5 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
                         layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
         CGSize(width: collectionView.bounds.width, height: 30)
-    }
-}
-
-// MARK: - UIColor Hex Init
-
-extension UIColor {
-    convenience init(hex: String) {
-        var hexFormatted = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        if hexFormatted.hasPrefix("#") { hexFormatted.removeFirst() }
-        var rgbValue: UInt64 = 0
-        Scanner(string: hexFormatted).scanHexInt64(&rgbValue)
-        let r = CGFloat((rgbValue & 0xFF0000) >> 16) / 255
-        let g = CGFloat((rgbValue & 0x00FF00) >> 8) / 255
-        let b = CGFloat(rgbValue & 0x0000FF) / 255
-        self.init(red: r, green: g, blue: b, alpha: 1.0)
     }
 }

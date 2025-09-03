@@ -1,7 +1,7 @@
 import UIKit
 
 final class CategoryHeader: UICollectionReusableView {
-    private let titleLabel = UILabel()
+    private lazy var titleLabel = UILabel()
     
     override init(frame: CGRect) {
         super.init(frame: frame)

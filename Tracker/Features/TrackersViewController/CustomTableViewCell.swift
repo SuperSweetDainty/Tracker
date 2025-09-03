@@ -3,18 +3,18 @@ import UIKit
 final class CustomTableViewCell: UITableViewCell {
     static let identifier = "CustomTableViewCell"
 
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        label.textColor = UIColor(named: "YPBlack")
+        label.textColor = UIColor(resource: .ypBlack)
         label.numberOfLines = 1
         return label
     }()
 
-    private let subtitleLabel: UILabel = {
+    private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        label.textColor = UIColor(named: "YPGray")
+        label.textColor = UIColor(resource: .ypGray)
         label.numberOfLines = 1
         return label
     }()

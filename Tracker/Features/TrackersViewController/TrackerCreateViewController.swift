@@ -22,7 +22,7 @@ final class TrackerCreateViewController: UIViewController {
     // MARK: - State
     private var categoryTitle: String = "Важное"
     private var trackerName: String = ""
-    private var trackerColor: UIColor? = UIColor(named: "YPGreen")
+    private var trackerColor: UIColor? = UIColor(resource: .ypGreen)
     private var weekDaysForTracker: [Weekday] = []
 
     private var cells: [(title: String, subtitle: String?)] = [
@@ -35,7 +35,7 @@ final class TrackerCreateViewController: UIViewController {
         let label = UILabel()
         label.text = Constants.trackerTitle
         label.textAlignment = .center
-        label.textColor = UIColor(named: "YPBlack")
+        label.textColor = UIColor(resource: .ypBlack)
         label.font = .systemFont(ofSize: 16, weight: .medium)
         return label
     }()
@@ -45,7 +45,7 @@ final class TrackerCreateViewController: UIViewController {
         label.text = Constants.limitText
         label.textAlignment = .center
         label.font = .systemFont(ofSize: 17, weight: .regular)
-        label.textColor = UIColor(named: "YPRed")
+        label.textColor = UIColor(resource: .ypRed)
         label.isHidden = true
         return label
     }()
@@ -53,7 +53,7 @@ final class TrackerCreateViewController: UIViewController {
     private lazy var textField: UITextField = {
         let field = UITextField()
         field.placeholder = Constants.placeholder
-        field.backgroundColor = UIColor(named: "YPBackground")
+        field.backgroundColor = UIColor(resource: .ypBackground)
         field.font = .systemFont(ofSize: 17, weight: .regular)
         field.layer.cornerRadius = 16
         field.layer.masksToBounds = true
@@ -71,11 +71,11 @@ final class TrackerCreateViewController: UIViewController {
         return stack
     }()
 
-    private lazy var cancelButton: UIButton = makeButton(title: Constants.cancelText, titleColor: UIColor(named: "YPRed"), backgroundColor: .clear, borderColor: UIColor(named: "YPRed")) {
+    private lazy var cancelButton: UIButton = makeButton(title: Constants.cancelText, titleColor: UIColor(resource: .ypRed), backgroundColor: .clear, borderColor: UIColor(resource: .ypRed)) {
         self.dismiss(animated: true)
     }
     
-    private lazy var createButton: UIButton = makeButton(title: Constants.createText, titleColor: UIColor(named: "YPWhite"), backgroundColor: UIColor(named: "YPGray"), borderColor: nil) {
+    private lazy var createButton: UIButton = makeButton(title: Constants.createText, titleColor: UIColor(resource: .ypWhite), backgroundColor: UIColor(resource: .ypGray), borderColor: nil) {
         self.createTracker()
     }
 
@@ -100,7 +100,7 @@ final class TrackerCreateViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: "YPWhite")
+        view.backgroundColor = UIColor(resource: .ypWhite)
         setupUI()
         setupConstraints()
         
@@ -131,7 +131,7 @@ final class TrackerCreateViewController: UIViewController {
         let hasName = !trackerName.trimmingCharacters(in: .whitespaces).isEmpty
         let hasSchedule = !weekDaysForTracker.isEmpty
         createButton.isEnabled = hasName && hasSchedule
-        createButton.backgroundColor = createButton.isEnabled ? UIColor(named: "YPBlack") : UIColor(named: "YPGray")
+        createButton.backgroundColor = createButton.isEnabled ? UIColor(resource: .ypBlack) : UIColor(resource: .ypGray)
     }
 
     private func makeButton(title: String, titleColor: UIColor?, backgroundColor: UIColor?, borderColor: UIColor?, action: @escaping () -> Void) -> UIButton {
@@ -238,7 +238,7 @@ extension TrackerCreateViewController: UITableViewDataSource, UITableViewDelegat
         }
 
         cell.accessoryType = .disclosureIndicator
-        cell.backgroundColor = UIColor(named: "YPBackground")
+        cell.backgroundColor = UIColor(resource: .ypBackground)
         return cell
     }
     

@@ -7,19 +7,18 @@ final class ScheduleCell: UITableViewCell {
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 17, weight: .regular)
-        label.textColor = UIColor(named: "YPBlack")
+        label.textColor = UIColor(resource: .ypBlack)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    let toggleSwitch: UISwitch = {
+    lazy var toggleSwitch: UISwitch = {
         let sw = UISwitch()
-        sw.onTintColor = UIColor(named: "YPBlue")
+        sw.onTintColor = UIColor(resource: .ypBlue)
         sw.translatesAutoresizingMaskIntoConstraints = false
         return sw
     }()
     
-    // Callback при изменении состояния переключателя
     var switchChanged: ((Bool) -> Void)?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

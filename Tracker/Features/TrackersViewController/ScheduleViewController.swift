@@ -19,7 +19,7 @@ final class ScheduleViewController: UIViewController {
         let label = UILabel()
         label.text = scheduleTitleText
         label.textAlignment = .center
-        label.textColor = UIColor(named: "YPBlack")
+        label.textColor = UIColor(resource: .ypBlack)
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -32,7 +32,7 @@ final class ScheduleViewController: UIViewController {
         table.dataSource = self
         table.register(ScheduleCell.self, forCellReuseIdentifier: ScheduleCell.identifier)
         table.layer.cornerRadius = 16
-        table.backgroundColor = UIColor(named: "YPBackground")
+        table.backgroundColor = UIColor(resource: .ypBackground)
         table.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         table.separatorStyle = .singleLine
         table.tableHeaderView = UIView(frame: .init(x: 0, y: 0, width: 0, height: 0.5))
@@ -43,9 +43,9 @@ final class ScheduleViewController: UIViewController {
     private lazy var doneButton: UIButton = {
         let button = UIButton()
         button.setTitle(doneText, for: .normal)
-        button.setTitleColor(UIColor(named: "YPWhite"), for: .normal)
+        button.setTitleColor(UIColor(resource: .ypWhite), for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        button.backgroundColor = UIColor(named: "YPBlack")
+        button.backgroundColor = UIColor(resource: .ypBlack)
         button.layer.cornerRadius = 16
         button.layer.masksToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -77,7 +77,7 @@ final class ScheduleViewController: UIViewController {
 
     // MARK: - Setup UI
     private func setupUI() {
-        view.backgroundColor = UIColor(named: "YPWhite")
+        view.backgroundColor = UIColor(resource: .ypWhite)
         view.addSubview(scheduleTitleLabel)
         view.addSubview(tableView)
         view.addSubview(doneButton)
@@ -114,15 +114,14 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         let day = Weekday.allCases[indexPath.row]
         cell.configure(day: day, isOn: selectedDays.contains(day))
         cell.switchChanged = { [weak self] isOn in
-            guard let self = self else { return }
             if isOn {
-                self.selectedDays.insert(day)
+                self?.selectedDays.insert(day)
             } else {
-                self.selectedDays.remove(day)
+                self?.selectedDays.remove(day)
             }
         }
         
-        cell.backgroundColor = UIColor(named: "YPBackground")
+        cell.backgroundColor = UIColor(resource: .ypBackground)
         return cell
     }
 

@@ -7,7 +7,7 @@ final class MainTabBarController: UITabBarController {
 
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
-        tabAppearance.backgroundColor = UIColor(named: "YPWhite")
+        tabAppearance.backgroundColor = UIColor(resource: .ypWhite)
         
         let titleAttributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 10, weight: .medium)
@@ -22,14 +22,14 @@ final class MainTabBarController: UITabBarController {
         let trackersVC = TrackersViewController()
         trackersVC.tabBarItem = UITabBarItem(
             title: "Трекеры",
-            image: UIImage(named: "TrackerImage"),
+            image: UIImage(resource: .tracker),
             selectedImage: nil
         )
         
         let statisticsVC = StatisticsViewController()
         statisticsVC.tabBarItem = UITabBarItem(
             title: "Статистика",
-            image: UIImage(named: "StatisticImage"),
+            image: UIImage(resource: .statistic),
             selectedImage: nil
         )
         
