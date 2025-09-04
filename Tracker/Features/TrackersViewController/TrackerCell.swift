@@ -136,7 +136,8 @@ final class TrackerCell: UICollectionViewCell {
         emojiLabel.text = tracker.emoji
         counterLabel.text = "\(counter) " + (counter == 1 ? "день" : "дней")
         cardView.backgroundColor = tracker.color
-        completeButton.setImage(UIImage(resource: completed ? .doneMark : .plusMark), for: .normal)
+        completeButton.backgroundColor = completed ? tracker.color.withAlphaComponent(0.3) : tracker.color
+        completeButton.setImage(UIImage(systemName: completed ? "checkmark" : "plus"), for: .normal)
         onToggleComplete = onToggle
     }
 
