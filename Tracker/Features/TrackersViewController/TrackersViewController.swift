@@ -1,6 +1,10 @@
 import UIKit
 
-final class TrackersViewController: UIViewController {
+final class TrackersViewController: UIViewController, TrackerStoreDelegate {
+    
+    private let trackerStore = TrackerStore()
+    private let categoryStore = TrackerCategoryStore()
+    private let recordStore = TrackerRecordStore()
     
     private var categories: [TrackerCategory] = []
     private var completedTrackers: Set<TrackerRecord> = []
@@ -86,16 +90,24 @@ final class TrackersViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        trackerStore.delegate = self
         view.backgroundColor = .white
         tabBarController?.tabBar.backgroundColor = .white
         addButton.addTarget(self, action: #selector(addTrackerTapped), for: .touchUpInside)
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
-        categories = []
+        categories = TrackerCategoryStore().fetchAll()
+        recordStore.delegate = self
+        completedTrackers = Set(recordStore.fetchAll())
         filterTrackers(for: currentDate)
         collectionView.reloadData()
         setupUI()
         setupConstraints()
     }
+    
+    func didUpdateTrackers() {
+        collectionView.reloadData()
+    }
+    
     
     @objc private func addTrackerTapped() {
         let createVC = TrackerCreateViewController()
@@ -134,7 +146,7 @@ final class TrackersViewController: UIViewController {
             datePicker.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 77),
             datePicker.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
             datePicker.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-
+            
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleLabel.topAnchor.constraint(equalTo: addButton.bottomAnchor, constant: 1),
             
@@ -170,6 +182,27 @@ final class TrackersViewController: UIViewController {
 
 extension TrackersViewController {
     
+    func completeTracker(_ tracker: Tracker, on date: Date) {
+        let record = TrackerRecord(trackerId: tracker.id, date: date)
+        completedTrackers.insert(record)
+        try? recordStore.addRecord(record)
+    }
+    
+    func uncompleteTracker(_ tracker: Tracker, on date: Date) {
+        let record = TrackerRecord(trackerId: tracker.id, date: date)
+        completedTrackers.remove(record)
+        try? recordStore.deleteRecord(record)
+    }
+    
+    func isCompleted(_ tracker: Tracker, on date: Date) -> Bool {
+        let record = TrackerRecord(trackerId: tracker.id, date: date)
+        return completedTrackers.contains(record)
+    }
+    
+    func completedDaysCount(for tracker: Tracker) -> Int {
+        completedTrackers.filter { $0.trackerId == tracker.id }.count
+    }
+    
     private func filterTrackers(for date: Date) {
         let weekdayIndex = Calendar.current.component(.weekday, from: date)
         let weekday = Weekday.allCases[(weekdayIndex + 5) % 7]
@@ -183,38 +216,26 @@ extension TrackersViewController {
         collectionView.isHidden = !hasTrackers
         collectionView.reloadData()
     }
-    
-    func completeTracker(_ tracker: Tracker, on date: Date) {
-        let record = TrackerRecord(trackerId: tracker.id, date: date)
-        completedTrackers.insert(record)
-    }
-    
-    func uncompleteTracker(_ tracker: Tracker, on date: Date) {
-        let record = TrackerRecord(trackerId: tracker.id, date: date)
-        completedTrackers.remove(record)
-    }
-    
-    func isCompleted(_ tracker: Tracker, on date: Date) -> Bool {
-        let record = TrackerRecord(trackerId: tracker.id, date: date)
-        return completedTrackers.contains(record)
-    }
-    
-    func completedDaysCount(for tracker: Tracker) -> Int {
-        completedTrackers.filter { $0.trackerId == tracker.id }.count
-    }
 }
 
-// MARK: - TrackerCreateViewControllerDelegate
+// MARK: - TrackerCreateViewControllerDelegate & TrackerRecordStoreDelegate
 
 extension TrackersViewController: TrackerCreateViewControllerDelegate {
     func trackerCreateViewController(_ controller: TrackerCreateViewController, didCreate tracker: Tracker, inCategory category: String) {
-        if let idx = categories.firstIndex(where: { $0.title == category }) {
-            let oldCategory = categories[idx]
-            categories[idx] = TrackerCategory(title: oldCategory.title, trackers: oldCategory.trackers + [tracker])
-        } else {
-            categories.append(TrackerCategory(title: category, trackers: [tracker]))
+        do {
+            try categoryStore.addTracker(tracker, toCategory: category)
+        } catch {
+            print("Ошибка сохранения трекера в Core Data: \(error)")
         }
+        categories = categoryStore.fetchAll()
         filterTrackers(for: currentDate)
+    }
+}
+
+extension TrackersViewController: TrackerRecordStoreDelegate {
+    func didUpdateRecords() {
+        completedTrackers = Set(recordStore.fetchAll())
+        collectionView.reloadData()
     }
 }
 
@@ -253,7 +274,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         }
         return cell
     }
-
+    
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
