@@ -18,7 +18,7 @@ final class EmojiCollectionViewCell: UICollectionViewCell {
         contentView.backgroundColor = .clear
         
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        emojiLabel.font = .systemFont(ofSize: 32, weight: .bold) // 🔥 вместо кастомного SFPro-Bold
+        emojiLabel.font = .systemFont(ofSize: 32, weight: .bold)
         emojiLabel.textAlignment = .center
         emojiLabel.textColor = UIColor(resource: .ypBlack)
         contentView.addSubview(emojiLabel)

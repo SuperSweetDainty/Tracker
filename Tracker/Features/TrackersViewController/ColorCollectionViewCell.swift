@@ -36,12 +36,12 @@ final class ColorCollectionViewCell: UICollectionViewCell {
         contentView.layer.borderColor = nil
     }
     
-    func configure(with color: UIColor, isSelected: Bool) {
-        colorView.backgroundColor = color
+    func configure(with color: String, isSelected: Bool) {
+        colorView.backgroundColor = UIColor(named: color)
         
         if isSelected {
             contentView.layer.borderWidth = 2
-            contentView.layer.borderColor = color.withAlphaComponent(0.3).cgColor
+            contentView.layer.borderColor = UIColor(named: color)?.withAlphaComponent(0.3).cgColor
             contentView.layer.cornerRadius = 8
         } else {
             contentView.layer.borderWidth = 0

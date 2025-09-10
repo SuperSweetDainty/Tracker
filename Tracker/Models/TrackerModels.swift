@@ -8,9 +8,13 @@ enum Weekday: Int, CaseIterable, Codable {
 struct Tracker {
     let id: UUID
     let name: String
-    let color: UIColor
+    let color: String
     let emoji: String
     let schedule: [Weekday]
+    
+    var uiColor: UIColor {
+          UIColor(named: color) ?? .ypBackground
+      }
 }
 
 struct TrackerCategory {

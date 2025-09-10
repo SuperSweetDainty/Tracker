@@ -22,11 +22,11 @@ final class TrackerCreateViewController: UIViewController {
     // MARK: - State
     private var categoryTitle: String = "Важное"
     private var trackerName: String = ""
-    private var trackerColor: UIColor?
+    private var trackerColor: String?
     private var trackerEmoji: String = ""
     private var weekDaysForTracker: [Weekday] = []
     private var selectedEmoji: String?
-    private var selectedColor: UIColor?
+    private var selectedColor: String?
     
     private var cells: [(title: String, subtitle: String?)] = [
         ("Категория", "Важное"),
@@ -34,27 +34,27 @@ final class TrackerCreateViewController: UIViewController {
     ]
     
     private let emojis = ["🙂","😻","🌺","🐶","❤️","😱","😇","😡","🥶","🤔","🙌","🍔","🥦","🏓","🥇","🎸","🏝","😪"]
-    private let colors: [UIColor] = [
-        UIColor(resource: .collectionColor1),
-        UIColor(resource: .collectionColor2),
-        UIColor(resource: .collectionColor3),
-        UIColor(resource: .collectionColor4),
-        UIColor(resource: .collectionColor5),
-        UIColor(resource: .collectionColor6),
-        UIColor(resource: .collectionColor7),
-        UIColor(resource: .collectionColor8),
-        UIColor(resource: .collectionColor9),
-        UIColor(resource: .collectionColor10),
-        UIColor(resource: .collectionColor11),
-        UIColor(resource: .collectionColor12),
-        UIColor(resource: .collectionColor13),
-        UIColor(resource: .collectionColor14),
-        UIColor(resource: .collectionColor15),
-        UIColor(resource: .collectionColor16),
-        UIColor(resource: .collectionColor17),
-        UIColor(resource: .collectionColor18)
+    private let colors: [String] = [
+        "CollectionColor1",
+        "CollectionColor2",
+        "CollectionColor3",
+        "CollectionColor4",
+        "CollectionColor5",
+        "CollectionColor6",
+        "CollectionColor7",
+        "CollectionColor8",
+        "CollectionColor9",
+        "CollectionColor10",
+        "CollectionColor11",
+        "CollectionColor12",
+        "CollectionColor13",
+        "CollectionColor14",
+        "CollectionColor15",
+        "CollectionColor16",
+        "CollectionColor17",
+        "CollectionColor18"
     ]
-    
+
     // MARK: - Scroll Containers
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
@@ -188,7 +188,7 @@ final class TrackerCreateViewController: UIViewController {
         let tracker = Tracker(
             id: UUID(),
             name: trackerName,
-            color: trackerColor ?? .gray,
+            color: trackerColor ?? ".gray",
             emoji: trackerEmoji,
             schedule: weekDaysForTracker
         )
@@ -357,9 +357,9 @@ extension TrackerCreateViewController: UICollectionViewDataSource, UICollectionV
             return cell
         } else {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCollectionViewCell.identifier, for: indexPath) as? ColorCollectionViewCell else { return UICollectionViewCell() }
-            let color = colors[indexPath.item]
-            let isSelected = color == selectedColor
-            cell.configure(with: color, isSelected: isSelected)
+            let colorName = colors[indexPath.item]
+            let isSelected = colorName == selectedColor
+            cell.configure(with: colorName, isSelected: isSelected)
             return cell
         }
     }
@@ -375,5 +375,30 @@ extension TrackerCreateViewController: UICollectionViewDataSource, UICollectionV
             colorCollectionView.reloadData()
         }
         updateCreateButton()
+    }
+}
+
+extension TrackerCreateViewController: UICollectionViewDelegateFlowLayout {
+
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let itemsInRow: CGFloat = 6
+        let spacing: CGFloat = 12
+        let totalWidth = collectionView.bounds.width
+        let width = (totalWidth - (itemsInRow - 1) * spacing) / itemsInRow
+        return CGSize(width: width, height: width)
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        12
+    }
+
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        12
     }
 }
