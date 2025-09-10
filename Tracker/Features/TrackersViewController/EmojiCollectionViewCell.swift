@@ -14,6 +14,18 @@ final class EmojiCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    func configure(with emoji: String, isSelected: Bool) {
+        emojiLabel.text = emoji
+        
+        if isSelected {
+            contentView.backgroundColor = UIColor(resource: .ypDarkGray)
+            contentView.layer.cornerRadius = 8
+        } else {
+            contentView.backgroundColor = .clear
+            contentView.layer.cornerRadius = 0
+        }
+    }
+    
     private func setupUI() {
         contentView.backgroundColor = .clear
         
@@ -29,17 +41,5 @@ final class EmojiCollectionViewCell: UICollectionViewCell {
             emojiLabel.widthAnchor.constraint(equalToConstant: 52),
             emojiLabel.heightAnchor.constraint(equalToConstant: 52)
         ])
-    }
-    
-    func configure(with emoji: String, isSelected: Bool) {
-        emojiLabel.text = emoji
-        
-        if isSelected {
-            contentView.backgroundColor = UIColor(resource: .ypDarkGray)
-            contentView.layer.cornerRadius = 8
-        } else {
-            contentView.backgroundColor = .clear
-            contentView.layer.cornerRadius = 0
-        }
     }
 }

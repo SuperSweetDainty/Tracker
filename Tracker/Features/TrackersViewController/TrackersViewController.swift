@@ -5,7 +5,6 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
     private let trackerStore = TrackerStore()
     private let categoryStore = TrackerCategoryStore()
     private let recordStore = TrackerRecordStore()
-
     
     private var categories: [TrackerCategory] = []
     private var completedTrackers: Set<TrackerRecord> = []
@@ -105,6 +104,11 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
         setupConstraints()
     }
     
+    func didUpdateTrackers() {
+        collectionView.reloadData()
+    }
+    
+    
     @objc private func addTrackerTapped() {
         let createVC = TrackerCreateViewController()
         createVC.delegate = self
@@ -142,7 +146,7 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
             datePicker.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 77),
             datePicker.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
             datePicker.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-
+            
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleLabel.topAnchor.constraint(equalTo: addButton.bottomAnchor, constant: 1),
             
@@ -172,36 +176,18 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
-    
-    func didUpdateTrackers() {
-            collectionView.reloadData()
-        }
 }
 
 // MARK: - Trackers Filtering and Completion
 
 extension TrackersViewController {
     
-    private func filterTrackers(for date: Date) {
-        let weekdayIndex = Calendar.current.component(.weekday, from: date)
-        let weekday = Weekday.allCases[(weekdayIndex + 5) % 7]
-        visibleCategories = categories.compactMap { category in
-            let trackersForDay = category.trackers.filter { $0.schedule.contains(weekday) }
-            return trackersForDay.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackersForDay)
-        }
-        let hasTrackers = !visibleCategories.isEmpty
-        emptyIcon.isHidden = hasTrackers
-        emptyLabel.isHidden = hasTrackers
-        collectionView.isHidden = !hasTrackers
-        collectionView.reloadData()
-    }
-    
     func completeTracker(_ tracker: Tracker, on date: Date) {
         let record = TrackerRecord(trackerId: tracker.id, date: date)
         completedTrackers.insert(record)
         try? recordStore.addRecord(record)
     }
-
+    
     func uncompleteTracker(_ tracker: Tracker, on date: Date) {
         let record = TrackerRecord(trackerId: tracker.id, date: date)
         completedTrackers.remove(record)
@@ -215,6 +201,20 @@ extension TrackersViewController {
     
     func completedDaysCount(for tracker: Tracker) -> Int {
         completedTrackers.filter { $0.trackerId == tracker.id }.count
+    }
+    
+    private func filterTrackers(for date: Date) {
+        let weekdayIndex = Calendar.current.component(.weekday, from: date)
+        let weekday = Weekday.allCases[(weekdayIndex + 5) % 7]
+        visibleCategories = categories.compactMap { category in
+            let trackersForDay = category.trackers.filter { $0.schedule.contains(weekday) }
+            return trackersForDay.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackersForDay)
+        }
+        let hasTrackers = !visibleCategories.isEmpty
+        emptyIcon.isHidden = hasTrackers
+        emptyLabel.isHidden = hasTrackers
+        collectionView.isHidden = !hasTrackers
+        collectionView.reloadData()
     }
 }
 
@@ -274,7 +274,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         }
         return cell
     }
-
+    
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {

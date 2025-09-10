@@ -8,17 +8,17 @@ final class TrackerStore: NSObject {
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>!
     weak var delegate: TrackerStoreDelegate?
-
+    
     init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
         self.context = context
         super.init()
         setupFetchedResultsController()
     }
-
+    
     private func setupFetchedResultsController() {
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
-
+        
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
             managedObjectContext: context,
@@ -26,14 +26,14 @@ final class TrackerStore: NSObject {
             cacheName: nil
         )
         fetchedResultsController.delegate = self
-
+        
         do {
             try fetchedResultsController.performFetch()
         } catch {
             print("Ошибка fetch: \(error)")
         }
     }
-
+    
     func fetchAll() -> [Tracker] {
         let objects = fetchedResultsController.fetchedObjects ?? []
         return objects.compactMap { TrackerStore.mapToTracker($0) }
@@ -47,7 +47,7 @@ final class TrackerStore: NSObject {
         trackerCD.emoji = tracker.emoji
         trackerCD.schedule = tracker.schedule.map { $0.rawValue } as NSObject
         trackerCD.category = category
-
+        
         try context.save()
     }
     
@@ -78,9 +78,9 @@ extension TrackerStore {
         else {
             return nil
         }
-
+        
         let schedule = scheduleRaw.compactMap { Weekday(rawValue: $0) }
-
+        
         return Tracker(
             id: id,
             name: name,

@@ -9,17 +9,17 @@ final class TrackerCategoryStore: NSObject {
     private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>!
     weak var delegate: TrackerCategoryStoreDelegate?
-
+    
     init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
         self.context = context
         super.init()
         setupFetchedResultsController()
     }
-
+    
     private func setupFetchedResultsController() {
         let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-
+        
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
             managedObjectContext: context,
@@ -27,14 +27,14 @@ final class TrackerCategoryStore: NSObject {
             cacheName: nil
         )
         fetchedResultsController.delegate = self
-
+        
         do {
             try fetchedResultsController.performFetch()
         } catch {
             print("Ошибка fetch categories: \(error)")
         }
     }
-
+    
     func fetchAll() -> [TrackerCategory] {
         let objects = fetchedResultsController.fetchedObjects ?? []
         return objects.map { categoryCD in
@@ -76,16 +76,16 @@ extension TrackerCategoryStore {
         } else {
             categoryCD = try create(title: title)
         }
-
+        
         let trackerCD = TrackerCoreData(context: context)
         trackerCD.identifier = tracker.id
         trackerCD.name = tracker.name
         trackerCD.color = tracker.color
         trackerCD.emoji = tracker.emoji
         trackerCD.schedule = tracker.schedule.map { $0.rawValue } as NSArray
-
+        
         categoryCD.addToTrackers(trackerCD)
-
+        
         try context.save()
     }
     
@@ -93,7 +93,7 @@ extension TrackerCategoryStore {
         let request = TrackerCategoryCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "%K == %@", #keyPath(TrackerCategoryCoreData.title), title)
         request.fetchLimit = 1
-
+        
         let result = try context.fetch(request)
         return result.first
     }

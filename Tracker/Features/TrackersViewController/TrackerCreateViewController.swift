@@ -54,7 +54,7 @@ final class TrackerCreateViewController: UIViewController {
         "CollectionColor17",
         "CollectionColor18"
     ]
-
+    
     // MARK: - Scroll Containers
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
@@ -335,10 +335,10 @@ extension TrackerCreateViewController: UITableViewDataSource, UITableViewDelegat
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         cell.separatorInset = indexPath.row == cells.count - 1
-            ? UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
-            : UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        ? UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
+        : UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
     }
-
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat { 75 }
 }
 
@@ -379,7 +379,7 @@ extension TrackerCreateViewController: UICollectionViewDataSource, UICollectionV
 }
 
 extension TrackerCreateViewController: UICollectionViewDelegateFlowLayout {
-
+    
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -389,13 +389,13 @@ extension TrackerCreateViewController: UICollectionViewDelegateFlowLayout {
         let width = (totalWidth - (itemsInRow - 1) * spacing) / itemsInRow
         return CGSize(width: width, height: width)
     }
-
+    
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         12
     }
-
+    
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
