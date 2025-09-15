@@ -11,6 +11,7 @@ final class OnboardingContentViewController: UIViewController {
     private let index: Int
     private let text: String
     private let imageName: String
+    private let pageControl = UIPageControl()
     
     // Callback
     var onAction: (() -> Void)?
@@ -81,26 +82,21 @@ private extension OnboardingContentViewController {
     
     func configureButton() {
         actionButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        var config = UIButton.Configuration.filled()
-        config.title = "Поехали!"
-        config.baseBackgroundColor = UIColor(resource: .ypBlack)
-        config.baseForegroundColor = .white
-        config.cornerStyle = .large
-        config.contentInsets = NSDirectionalEdgeInsets(top: 18, leading: 32, bottom: 18, trailing: 32)
-        
-        actionButton.configuration = config
+        actionButton.setTitle("Вот это технологии!", for: .normal)
+        actionButton.setTitleColor(.white, for: .normal)
+        actionButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        actionButton.backgroundColor = UIColor.ypBlack
+        actionButton.layer.cornerRadius = 16
+        actionButton.layer.masksToBounds = true
+        actionButton.contentEdgeInsets = UIEdgeInsets(top: 19, left: 32, bottom: 19, right: 32)
         actionButton.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
         
         view.addSubview(actionButton)
         
-        let screenHeight = UIScreen.main.bounds.height
-        let buttonOffset: CGFloat = screenHeight <= 667 ? 120 : 170
-        
         NSLayoutConstraint.activate([
             actionButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             actionButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            actionButton.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: buttonOffset),
+            actionButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50),
             actionButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
