@@ -29,7 +29,7 @@ final class TrackerCreateViewController: UIViewController {
     private var selectedColor: String?
     
     private var cells: [(title: String, subtitle: String?)] = [
-        ("Категория", "Важное"),
+        ("Категория", nil),
         ("Расписание", nil)
     ]
     
@@ -289,6 +289,16 @@ extension TrackerCreateViewController: UITextFieldDelegate {
     }
 }
 
+// MARK: - CategoryViewControllerDelegate
+extension TrackerCreateViewController: CategoryViewControllerDelegate {
+    func categoryViewController(_ controller: CategoryViewController, didSelectCategory category: String) {
+        categoryTitle = category
+        cells[0].subtitle = category
+        tableView.reloadData()
+        updateCreateButton()
+    }
+}
+
 // MARK: - ScheduleViewControllerDelegate
 extension TrackerCreateViewController: ScheduleViewControllerDelegate {
     func scheduleViewController(_ controller: ScheduleViewController, didSelectDays days: [Weekday]) {
@@ -325,11 +335,18 @@ extension TrackerCreateViewController: UITableViewDataSource, UITableViewDelegat
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if cells[indexPath.row].title == "Расписание" {
+        let cellTitle = cells[indexPath.row].title
+        
+        if cellTitle == "Расписание" {
             let scheduleVC = ScheduleViewController()
             scheduleVC.delegate = self
             scheduleVC.modalPresentationStyle = .automatic
             present(scheduleVC, animated: true)
+        } else if cellTitle == "Категория" {
+            let categoryVC = CategoryViewController()
+            categoryVC.delegate = self
+            categoryVC.modalPresentationStyle = .automatic
+            present(categoryVC, animated: true)
         }
     }
     
