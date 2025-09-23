@@ -1,21 +1,5 @@
 import UIKit
 
-enum TrackerFilter: CaseIterable {
-    case all
-    case today
-    case completed
-    case incomplete
-    
-    var title: String {
-        switch self {
-        case .all: return NSLocalizedString("filters.all", comment: "Все трекеры")
-        case .today: return NSLocalizedString("filters.today", comment: "Трекеры на сегодня")
-        case .completed: return NSLocalizedString("filters.completed", comment: "Завершенные")
-        case .incomplete: return NSLocalizedString("filters.incomplete", comment: "Не завершенные")
-        }
-    }
-}
-
 final class FiltersViewController: UIViewController {
     
     // MARK: - UI
@@ -24,7 +8,7 @@ final class FiltersViewController: UIViewController {
     private let tableView = UITableView()
     
     // MARK: - State
-    var selectedFilter: TrackerFilter = .today
+    var selectedFilter: TrackerFilter = .all
     var onFilterSelected: ((TrackerFilter) -> Void)?
     
     override func viewDidLoad() {
@@ -37,8 +21,8 @@ final class FiltersViewController: UIViewController {
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = NSLocalizedString("filters.title", comment: "Фильтры")
-        titleLabel.font = UIFont(name: "SFPro-Medium", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium)
-        titleLabel.textColor = UIColor(named: "BlackDay")
+        titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        titleLabel.textColor = UIColor(resource: .ypBlack)
         titleLabel.textAlignment = .center
         view.addSubview(titleLabel)
         
@@ -82,7 +66,12 @@ extension FiltersViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FilterTableViewCell.identifier, for: indexPath) as! FilterTableViewCell
         let filter = TrackerFilter.allCases[indexPath.row]
-        let isSelected = filter == selectedFilter
+        
+        var isSelected = false
+        if filter == .completed || filter == .incomplete {
+            isSelected = filter == selectedFilter
+        }
+        
         let isFirst = indexPath.row == 0
         let isLast = indexPath.row == TrackerFilter.allCases.count - 1
         cell.configure(title: filter.title, isSelected: isSelected, isFirst: isFirst, isLast: isLast)
@@ -130,13 +119,13 @@ final class FilterTableViewCell: UITableViewCell {
         contentView.addSubview(containerView)
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UIFont(name: "SFPro-Regular", size: 17) ?? UIFont.systemFont(ofSize: 17)
-        titleLabel.textColor = UIColor(named: "BlackDay")
+        titleLabel.font = UIFont.systemFont(ofSize: 17)
+        titleLabel.textColor = UIColor(resource: .ypBlack)
         containerView.addSubview(titleLabel)
         
         checkmarkImageView.translatesAutoresizingMaskIntoConstraints = false
         checkmarkImageView.image = UIImage(systemName: "checkmark")
-        checkmarkImageView.tintColor = UIColor(named: "Blue")
+        checkmarkImageView.tintColor = UIColor(resource: .ypBlue)
         checkmarkImageView.contentMode = .scaleAspectFit
         checkmarkImageView.isHidden = true
         containerView.addSubview(checkmarkImageView)
@@ -177,7 +166,7 @@ final class FilterTableViewCell: UITableViewCell {
         if !isLast {
             let separatorView = UIView()
             separatorView.translatesAutoresizingMaskIntoConstraints = false
-            separatorView.backgroundColor = UIColor(named: "Gray")
+            separatorView.backgroundColor = UIColor(resource: .ypGray)
             containerView.addSubview(separatorView)
             NSLayoutConstraint.activate([
                 separatorView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),

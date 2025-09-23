@@ -34,7 +34,7 @@
 "filters.all" = "Все трекеры";
 "filters.today" = "Трекеры на сегодня";
 "filters.completed" = "Завершенные";
-"filters.incomplete" = "Не завершенные";
+"filters.uncompleted" = "Не завершенные";
 
 /* Schedule */
 "schedule.screen.title" = "Расписание";

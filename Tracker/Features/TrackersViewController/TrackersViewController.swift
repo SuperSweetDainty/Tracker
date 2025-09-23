@@ -10,7 +10,8 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
     private var completedTrackers: Set<TrackerRecord> = []
     private var currentDate: Date = Date()
     private var visibleCategories: [TrackerCategory] = []
-    private var currentFilter: TrackerFilter = .today
+    private var currentFilter: TrackerFilter = .all
+    private var searchText: String = ""
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -69,6 +70,7 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
     
     private lazy var searchTextField: UITextField = {
         let textField = UITextField()
+        textField.addTarget(self, action: #selector(searchTextChanged), for: .editingChanged)
         textField.backgroundColor = UIColor(resource: .ypDarkGray)
         textField.layer.cornerRadius = 10
         textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
@@ -120,13 +122,13 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
         categories = categoryStore.fetchAll()
         recordStore.delegate = self
         completedTrackers = Set(recordStore.fetchAll())
-        filterTrackers(for: currentDate)
+        applyFiltersAndSearch()
         setupUI()
         setupConstraints()
     }
     
     func didUpdateTrackers() {
-        filterTrackers(for: currentDate)
+        applyFiltersAndSearch()
     }
     
     @objc private func addTrackerTapped() {
@@ -136,8 +138,7 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
     }
     
     @objc private func dateChanged() {
-        currentDate = datePicker.date
-        filterTrackers(for: currentDate)
+        applyFiltersAndSearch()
     }
     
     @objc private func filtersButtonTapped() {
@@ -145,10 +146,22 @@ final class TrackersViewController: UIViewController, TrackerStoreDelegate {
         filtersVC.modalPresentationStyle = .pageSheet
         filtersVC.selectedFilter = currentFilter
         filtersVC.onFilterSelected = { [weak self] filter in
-            self?.currentFilter = filter
-
+            guard let self = self else { return }
+            self.currentFilter = filter
+            if filter == .today {
+                let today = Date()
+                self.currentDate = today
+                self.datePicker.setDate(today, animated: true)
+            }
+            self.applyFiltersAndSearch()
+            self.dismiss(animated: true)
         }
         present(filtersVC, animated: true)
+    }
+    
+    @objc private func searchTextChanged() {
+        searchText = searchTextField.text ?? ""
+        applyFiltersAndSearch()
     }
     
     private func setupUI() {
@@ -229,17 +242,70 @@ extension TrackersViewController {
         completedTrackers.filter { $0.trackerId == tracker.id }.count
     }
     
-    private func filterTrackers(for date: Date) {
-        let weekdayIndex = Calendar.current.component(.weekday, from: date)
-        let weekday = Weekday.allCases[(weekdayIndex + 5) % 7]
-        visibleCategories = categories.compactMap { category in
-            let trackersForDay = category.trackers.filter { $0.schedule.contains(weekday) }
-            return trackersForDay.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackersForDay)
+    private func applyFiltersAndSearch() {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        var filteredCategories: [TrackerCategory] = categories
+        if query.isEmpty {
+            let weekdayIndex = Calendar.current.component(.weekday, from: currentDate)
+            let weekday = Weekday.allCases[(weekdayIndex + 5) % 7]
+            filteredCategories = filteredCategories.compactMap { category in
+                let trackersForDay = category.trackers.filter { $0.schedule.contains(weekday) }
+                return trackersForDay.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackersForDay)
+            }
         }
+        
+        if !query.isEmpty {
+            filteredCategories = filteredCategories.compactMap { category in
+                let trackers = category.trackers.filter { $0.name.lowercased().contains(query) }
+                return trackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackers)
+            }
+        }
+        
+        switch currentFilter {
+        case .all:
+            break
+        case .today:
+            let weekdayIndex = Calendar.current.component(.weekday, from: currentDate)
+            let weekday = Weekday.allCases[(weekdayIndex + 5) % 7]
+            filteredCategories = filteredCategories.compactMap { category in
+                let trackers = category.trackers.filter { $0.schedule.contains(weekday) }
+                return trackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackers)
+            }
+        case .completed:
+            filteredCategories = filteredCategories.compactMap { category in
+                let trackers = category.trackers.filter { isCompleted($0, on: currentDate) }
+                return trackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackers)
+            }
+        case .incomplete:
+            filteredCategories = filteredCategories.compactMap { category in
+                let trackers = category.trackers.filter {
+                    $0.schedule.contains(Weekday.allCases[(Calendar.current.component(.weekday, from: currentDate) + 5) % 7]) &&
+                    !isCompleted($0, on: currentDate)
+                }
+                return trackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackers)
+            }
+        }
+        
+        visibleCategories = filteredCategories
+
         let hasTrackers = !visibleCategories.isEmpty
+        collectionView.isHidden = !hasTrackers
         emptyIcon.isHidden = hasTrackers
         emptyLabel.isHidden = hasTrackers
-        collectionView.isHidden = !hasTrackers
+
+        if !hasTrackers {
+            if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                emptyIcon.image = UIImage(resource: .searchError)
+                emptyLabel.text = NSLocalizedString("main.empty.search", comment: "Ничего не найдено")
+            } else if currentFilter != .all {
+                emptyIcon.image = UIImage(named: "SearchError")
+                emptyLabel.text = NSLocalizedString("main.empty.search", comment: "Ничего не найдено")
+            } else {
+                emptyIcon.image = UIImage(resource: .star)
+                emptyLabel.text = NSLocalizedString("main.empty.trackers", comment: "Что будем отслеживать?")
+            }
+        }
+
         collectionView.reloadData()
     }
 }
@@ -253,7 +319,7 @@ extension TrackersViewController: TrackerCreateViewControllerDelegate {
             print("Ошибка сохранения трекера в Core Data: \(error)")
         }
         categories = categoryStore.fetchAll()
-        filterTrackers(for: currentDate)
+        applyFiltersAndSearch()
     }
 }
 
@@ -371,7 +437,7 @@ extension TrackersViewController {
         }
         
         categories = categoryStore.fetchAll()
-        filterTrackers(for: currentDate)
+        applyFiltersAndSearch()
     }
 }
 
@@ -399,6 +465,6 @@ extension TrackersViewController: EditTrackerViewControllerDelegate {
             categories[categoryIndex].trackers.append(updatedTracker)
         }
         
-        filterTrackers(for: currentDate)
+        applyFiltersAndSearch()
     }
 }
