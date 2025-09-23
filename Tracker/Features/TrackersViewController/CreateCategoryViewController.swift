@@ -46,7 +46,7 @@ final class CreateCategoryViewController: UIViewController {
     
     private func setupTitleLabel() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Введите название категории"
+        titleLabel.text = NSLocalizedString("category.create.title", comment: "Новая категория")
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(resource: .ypBlack)
         titleLabel.textAlignment = .center
@@ -61,7 +61,7 @@ final class CreateCategoryViewController: UIViewController {
     
     private func setupCategoryTextField() {
         categoryTextField.translatesAutoresizingMaskIntoConstraints = false
-        categoryTextField.placeholder = "Введите название категории"
+        categoryTextField.placeholder = NSLocalizedString("category.field.placeholder", comment: "Введите название категории")
         categoryTextField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         categoryTextField.textColor = UIColor(resource: .ypBlack)
         categoryTextField.backgroundColor = UIColor(red: 0.90, green: 0.91, blue: 0.92, alpha: 0.30)
@@ -111,7 +111,7 @@ final class CreateCategoryViewController: UIViewController {
     
     private func setupDoneButton() {
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle(NSLocalizedString("button.common.done", comment: "Готово"), for: .normal)
         doneButton.setTitleColor(.white, for: .normal)
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         doneButton.backgroundColor = UIColor(resource: .ypGray)

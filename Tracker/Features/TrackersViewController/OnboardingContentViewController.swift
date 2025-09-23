@@ -82,7 +82,7 @@ private extension OnboardingContentViewController {
     
     func configureButton() {
         actionButton.translatesAutoresizingMaskIntoConstraints = false
-        actionButton.setTitle("Вот это технологии!", for: .normal)
+        actionButton.setTitle(NSLocalizedString("onboarding.button.start", comment: "Вот это технологии!"), for: .normal)
         actionButton.setTitleColor(.white, for: .normal)
         actionButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         actionButton.backgroundColor = UIColor.ypBlack

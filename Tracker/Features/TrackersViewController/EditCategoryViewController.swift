@@ -50,7 +50,7 @@ final class EditCategoryViewController: UIViewController {
 
     private func setupTitleLabel() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Редактирование категории"
+        titleLabel.text = NSLocalizedString("category.update.title", comment: "Редактирование категории")
         titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(resource: .ypBlack)
         titleLabel.textAlignment = .center
@@ -73,6 +73,7 @@ final class EditCategoryViewController: UIViewController {
         categoryTextField.delegate = self
         categoryTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
         categoryTextField.leftViewMode = .always
+        categoryTextField.placeholder = NSLocalizedString("category.field.placeholder", comment: "Введите название категории")
 
         categoryTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         setupClearButton()
@@ -113,7 +114,7 @@ final class EditCategoryViewController: UIViewController {
 
     private func setupDoneButton() {
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.setTitle("Готово", for: .normal)
+        doneButton.setTitle(NSLocalizedString("button.common.done", comment: "Готово"), for: .normal)
         doneButton.setTitleColor(.white, for: .normal)
         doneButton.backgroundColor = UIColor.systemGray
         doneButton.layer.cornerRadius = 16

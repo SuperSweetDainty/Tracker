@@ -1,10 +1,10 @@
 import UIKit
 
 final class MainTabBarController: UITabBarController {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
         tabAppearance.backgroundColor = UIColor(resource: .ypWhite)
@@ -21,14 +21,14 @@ final class MainTabBarController: UITabBarController {
         
         let trackersVC = TrackersViewController()
         trackersVC.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: NSLocalizedString("main.trackers.title", comment: "Трекеры"),
             image: UIImage(resource: .tracker),
             selectedImage: nil
         )
         
         let statisticsVC = StatisticsViewController()
         statisticsVC.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: NSLocalizedString("main.statistics.title", comment: "Статистика"),
             image: UIImage(resource: .statistic),
             selectedImage: nil
         )

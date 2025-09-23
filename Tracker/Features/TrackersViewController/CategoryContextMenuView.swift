@@ -37,7 +37,10 @@ final class CategoryContextMenuView: UIView {
         addSubview(backgroundContainer)
         
         editButton.translatesAutoresizingMaskIntoConstraints = false
-        editButton.setTitle("Редактировать", for: .normal)
+        editButton.setTitle(
+            NSLocalizedString("category.menu.edit", comment: "Редактировать"),
+            for: .normal
+        )
         editButton.setTitleColor(.label, for: .normal)
         editButton.titleLabel?.font = .systemFont(ofSize: 17)
         editButton.addTarget(self, action: #selector(handleEdit), for: .touchUpInside)
@@ -48,7 +51,10 @@ final class CategoryContextMenuView: UIView {
         backgroundContainer.addSubview(separator)
         
         deleteButton.translatesAutoresizingMaskIntoConstraints = false
-        deleteButton.setTitle("Удалить", for: .normal)
+        deleteButton.setTitle(
+            NSLocalizedString("category.menu.delete", comment: "Удалить"),
+            for: .normal
+        )
         deleteButton.setTitleColor(.systemRed, for: .normal)
         deleteButton.titleLabel?.font = .systemFont(ofSize: 17)
         deleteButton.addTarget(self, action: #selector(handleDelete), for: .touchUpInside)

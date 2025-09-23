@@ -8,16 +8,14 @@ final class ScheduleViewController: UIViewController {
     
     weak var delegate: ScheduleViewControllerDelegate?
     
-    private var selectedDays: Set<Weekday> = []
+    var onScheduleSelected: ((Set<Weekday>) -> Void)?
     
-    // MARK: - Text constants
-    private let scheduleTitleText = "Расписание"
-    private let doneText = "Готово"
+    private var selectedDays: Set<Weekday> = []
     
     // MARK: - UI
     private lazy var scheduleTitleLabel: UILabel = {
         let label = UILabel()
-        label.text = scheduleTitleText
+        label.text = NSLocalizedString("schedule.screen.title", comment: "Расписание")
         label.textAlignment = .center
         label.textColor = UIColor(resource: .ypBlack)
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
@@ -42,7 +40,7 @@ final class ScheduleViewController: UIViewController {
     
     private lazy var doneButton: UIButton = {
         let button = UIButton()
-        button.setTitle(doneText, for: .normal)
+        button.setTitle(NSLocalizedString("button.common.done", comment: "Готово"), for: .normal)
         button.setTitleColor(UIColor(resource: .ypWhite), for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         button.backgroundColor = UIColor(resource: .ypBlack)
@@ -63,6 +61,7 @@ final class ScheduleViewController: UIViewController {
     @objc private func doneButtonTapped() {
         let sortedDays = Weekday.allCases.filter { selectedDays.contains($0) }
         delegate?.scheduleViewController(self, didSelectDays: sortedDays)
+        onScheduleSelected?(selectedDays)   // ✅ новое API
         dismiss(animated: true)
     }
     

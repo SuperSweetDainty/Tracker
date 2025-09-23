@@ -20,12 +20,12 @@ final class OnboardingContainerViewController: UIViewController, UIPageViewContr
     private func setupPages() {
         let first = OnboardingContentViewController(
             index: 0,
-            text: "Отслеживайте только то, что хотите",
+            text: NSLocalizedString("onboarding.page1.title", comment: "Отслеживайте только то, что хотите"),
             imageName: "Onboard1"
         )
         let second = OnboardingContentViewController(
             index: 1,
-            text: "Даже если это не литры воды и йога",
+            text: NSLocalizedString("onboarding.page2.title", comment: "Даже если это не литры воды и йога"),
             imageName: "Onboard2"
         )
         

@@ -1,0 +1,77 @@
+/* Onboarding */
+"onboarding.page1.title" = "Отслеживайте только то, что хотите";
+"onboarding.page2.title" = "Даже если это не литры воды и йога";
+"onboarding.button.start" = "Вот это технологии!";
+
+/* Statistics */
+"main.statistics.title" = "Статистика";
+
+/* Common titles */
+"main.trackers.title" = "Трекеры";
+"main.search.placeholder" = "Поиск";
+"main.empty.trackers" = "Что будем отслеживать?";
+"main.empty.search" = "Ничего не найдено";
+
+/* Habit create/edit */
+"habit.create.title" = "Новая привычка";
+"habit.edit.title" = "Редактирование привычки";
+"habit.field.name.placeholder" = "Введите название трекера";
+
+/* Category */
+"category.screen.title" = "Категория";
+"category.button.add" = "Добавить категорию";
+"category.empty.message" = "Привычки и события можно\nобъединить по смыслу";
+"category.create.title" = "Новая категория";
+"category.field.placeholder" = "Введите название категории";
+"category.update.title" = "Редактирование категории";
+"category.menu.edit" = "Редактировать";
+"category.menu.delete" = "Удалить";
+"category.alert.delete.title" = "Удалить категорию?";
+"category.alert.delete.message" = "Все трекеры в этой категории также будут удалены.";
+
+/* Filters */
+"filters.title" = "Фильтры";
+"filters.all" = "Все трекеры";
+"filters.today" = "Трекеры на сегодня";
+"filters.completed" = "Завершенные";
+"filters.incomplete" = "Не завершенные";
+
+/* Schedule */
+"schedule.screen.title" = "Расписание";
+"schedule.option.everyday" = "Каждый день";
+"schedule.weekday.monday" = "Понедельник";
+"schedule.weekday.tuesday" = "Вторник";
+"schedule.weekday.wednesday" = "Среда";
+"schedule.weekday.thursday" = "Четверг";
+"schedule.weekday.friday" = "Пятница";
+"schedule.weekday.saturday" = "Суббота";
+"schedule.weekday.sunday" = "Воскресенье";
+"schedule.weekday.short.mon" = "Пн";
+"schedule.weekday.short.tue" = "Вт";
+"schedule.weekday.short.wed" = "Ср";
+"schedule.weekday.short.thu" = "Чт";
+"schedule.weekday.short.fri" = "Пт";
+"schedule.weekday.short.sat" = "Сб";
+"schedule.weekday.short.sun" = "Вс";
+
+/* Sections */
+"section.emoji.title" = "Emoji";
+"section.color.title" = "Цвет";
+"days.count" = "%@";
+
+/* Buttons */
+"button.common.cancel" = "Отменить";
+"button.common.create" = "Создать";
+"button.common.done" = "Готово";
+"button.common.save" = "Сохранить";
+
+/* Alerts/actions */
+"action.common.cancel" = "Отмена";
+"action.common.delete" = "Удалить";
+"action.common.pin" = "Закрепить";
+"action.common.edit" = "Редактировать";
+"tracker.alert.delete.title" = "Удалить привычку?";
+"tracker.alert.delete.message" = "Это действие нельзя отменить.";
+
+/* Misc */
+"limit.characters.38" = "Ограничение 38 символов";

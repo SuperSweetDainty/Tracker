@@ -1,7 +1,7 @@
 import UIKit
 
 protocol CategoryViewControllerDelegate: AnyObject {
-    func categoryViewController(_ controller: CategoryViewController, didSelectCategory category: String)
+    func categoryViewController(_ controller: CategoryViewController, didSelectCategory category: TrackerCategory)
 }
 
 final class CategoryViewController: UIViewController {
@@ -46,7 +46,7 @@ final class CategoryViewController: UIViewController {
 
     private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Категория"
+        titleLabel.text = NSLocalizedString("category.screen.title", comment: "Категория")
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(resource: .ypBlack)
         titleLabel.textAlignment = .center
@@ -71,7 +71,7 @@ final class CategoryViewController: UIViewController {
 
     private func setupAddButton() {
         addCategoryButton.translatesAutoresizingMaskIntoConstraints = false
-        addCategoryButton.setTitle("Добавить категорию", for: .normal)
+        addCategoryButton.setTitle(NSLocalizedString("category.button.add", comment: "Добавить категорию"), for: .normal)
         addCategoryButton.setTitleColor(.white, for: .normal)
         addCategoryButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         addCategoryButton.backgroundColor = UIColor(resource: .ypBlack)
@@ -101,7 +101,7 @@ final class CategoryViewController: UIViewController {
         view.addSubview(emptyStateImageView)
 
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyStateLabel.text = "Привычки и события можно\nобъединить по смыслу"
+        emptyStateLabel.text = NSLocalizedString("category.empty.message", comment: "Привычки и события можно объединить по смыслу")
         emptyStateLabel.font = UIFont.systemFont(ofSize: 12)
         emptyStateLabel.textColor = UIColor(resource: .ypBlack)
         emptyStateLabel.textAlignment = .center
@@ -227,7 +227,7 @@ extension CategoryViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let category = viewModel.categories[indexPath.row]
         viewModel.selectCategory(category)
-        delegate?.categoryViewController(self, didSelectCategory: category.title)
+        delegate?.categoryViewController(self, didSelectCategory: category)
         dismiss(animated: true)
     }
 }

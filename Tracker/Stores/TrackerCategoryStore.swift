@@ -1,4 +1,3 @@
-import ObjectiveC
 import CoreData
 
 protocol TrackerCategoryStoreDelegate: AnyObject {
@@ -6,7 +5,7 @@ protocol TrackerCategoryStoreDelegate: AnyObject {
 }
 
 final class TrackerCategoryStore: NSObject {
-    /*private*/ let context: NSManagedObjectContext
+    let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>!
     weak var delegate: TrackerCategoryStoreDelegate?
     
@@ -60,15 +59,15 @@ final class TrackerCategoryStore: NSObject {
             try context.save()
         }
     }
-}
-
-extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        delegate?.didUpdateCategories()
+    
+    func fetch(by title: String) throws -> TrackerCategoryCoreData? {
+        let request = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", title)
+        request.fetchLimit = 1
+        let result = try context.fetch(request)
+        return result.first
     }
-}
-
-extension TrackerCategoryStore {
+    
     func addTracker(_ tracker: Tracker, toCategory title: String) throws {
         let categoryCD: TrackerCategoryCoreData
         if let existing = try fetch(by: title) {
@@ -85,16 +84,24 @@ extension TrackerCategoryStore {
         trackerCD.schedule = tracker.schedule.map { $0.rawValue } as NSArray
         
         categoryCD.addToTrackers(trackerCD)
-        
         try context.save()
     }
     
-    func fetch(by title: String) throws -> TrackerCategoryCoreData? {
-        let request = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "%K == %@", #keyPath(TrackerCategoryCoreData.title), title)
-        request.fetchLimit = 1
+    /// Удаление трекера из категории
+    func deleteTracker(_ tracker: Tracker, fromCategory title: String) throws {
+        guard let category = try fetch(by: title),
+              let trackersSet = category.trackers as? Set<TrackerCoreData>,
+              let trackerCD = trackersSet.first(where: { $0.identifier == tracker.id })
+        else { return }
         
-        let result = try context.fetch(request)
-        return result.first
+        category.removeFromTrackers(trackerCD)
+        context.delete(trackerCD)
+        try context.save()
+    }
+}
+
+extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        delegate?.didUpdateCategories()
     }
 }
