@@ -1,0 +1,87 @@
+/* Onboarding */
+"onboarding.title.0" = "Отслеживайте только то, что хотите";
+"onboarding.title.1" = "Даже если это не литры воды и йога";
+"onboarding.action" = "Вот это технологии!";
+
+/* Category */
+"category.title" = "Категория";
+"category.add.button" = "Добавить категорию";
+"category.empty" = "Привычки и события можно\nобъединить по смыслу";
+"category.new.title" = "Новая категория";
+"category.placeholder" = "Введите название категории";
+"category.edit.title" = "Редактирование категории";
+"category.context.edit" = "Редактировать";
+"category.context.delete" = "Удалить";
+"category.delete.alert.title" = "Удалить категорию?";
+"category.delete.alert.message" = "Все трекеры в этой категории также будут удалены.";
+
+/* Common titles */
+"trackers.title" = "Трекеры";
+"search.placeholder" = "Поиск";
+"empty.trackers" = "Что будем отслеживать?";
+"search.empty" = "Ничего не найдено";
+"filters.empty" = "Ничего не найдено";
+"filters.title" = "Фильтры";
+"filters.all" = "Все трекеры";
+"filters.today" = "Трекеры на сегодня";
+"filters.completed" = "Завершенные";
+"filters.incomplete" = "Не завершенные";
+
+/* Sections */
+"emoji.title" = "Emoji";
+"color.title" = "Цвет";
+
+/* Habit create/edit */
+"habit.new.title" = "Новая привычка";
+"habit.edit.title" = "Редактирование привычки";
+"habit.name.placeholder" = "Введите название трекера";
+
+/* Buttons */
+"button.cancel" = "Отменить";
+"button.create" = "Создать";
+"button.done" = "Готово";
+"button.save" = "Сохранить";
+
+/* Schedule */
+"schedule.title" = "Расписание";
+"schedule.everyday" = "Каждый день";
+"weekday.1" = "Понедельник";
+"weekday.2" = "Вторник";
+"weekday.3" = "Среда";
+"weekday.4" = "Четверг";
+"weekday.5" = "Пятница";
+"weekday.6" = "Суббота";
+"weekday.7" = "Воскресенье";
+"weekday.short.1" = "Пн";
+"weekday.short.2" = "Вт";
+"weekday.short.3" = "Ср";
+"weekday.short.4" = "Чт";
+"weekday.short.5" = "Пт";
+"weekday.short.6" = "Сб";
+"weekday.short.7" = "Вс";
+
+/* Alerts/actions */
+"action.cancel" = "Отмена";
+"action.delete" = "Удалить";
+"action.pin" = "Закрепить";
+"action.edit" = "Редактировать";
+"tracker.delete.alert.title" = "Удалить привычку?";
+"tracker.delete.alert.message" = "Это действие нельзя отменить.";
+
+/* Statistics */
+"statistics.title" = "Статистика";
+"statistics.empty" = "Анализировать пока нечего";
+"statistics.best.period" = "Лучший период";
+"statistics.ideal.days" = "Идеальные дни";
+"statistics.completed.trackers" = "Трекеров завершено";
+"statistics.average.value" = "Среднее значение";
+
+/* Tab Bar */
+"tab.trackers" = "Трекеры";
+"tab.statistics" = "Статистика";
+
+/* Misc */
+"limit.38" = "Ограничение 38 символов";
+"days.count" = "%d день";
+
+

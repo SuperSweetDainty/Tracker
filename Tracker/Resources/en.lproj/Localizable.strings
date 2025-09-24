@@ -1,0 +1,85 @@
+/* Onboarding */
+"onboarding.title.0" = "Track only what you want";
+"onboarding.title.1" = "Even if it's not liters of water and yoga";
+"onboarding.action" = "That's technology!";
+
+/* Common titles */
+"trackers.title" = "Trackers";
+"search.placeholder" = "Search";
+"empty.trackers" = "What are we going to track?";
+"search.empty" = "Nothing found";
+"filters.empty" = "Nothing found";
+"filters.title" = "Filters";
+"filters.all" = "All trackers";
+"filters.today" = "Trackers for today";
+"filters.completed" = "Completed";
+"filters.incomplete" = "Incomplete";
+
+/* Habit create/edit */
+"habit.new.title" = "New habit";
+"habit.edit.title" = "Edit habit";
+"habit.name.placeholder" = "Enter tracker name";
+
+/* Category */
+"category.title" = "Category";
+"category.add.button" = "Add category";
+"category.empty" = "Habits and events can be\ncombined by meaning";
+"category.new.title" = "New category";
+"category.placeholder" = "Enter category name";
+"category.edit.title" = "Edit category";
+"category.context.edit" = "Edit";
+"category.context.delete" = "Delete";
+"category.delete.alert.title" = "Delete category?";
+"category.delete.alert.message" = "All trackers in this category will also be deleted.";
+
+/* Schedule */
+"schedule.title" = "Schedule";
+"schedule.everyday" = "Every day";
+"weekday.1" = "Monday";
+"weekday.2" = "Tuesday";
+"weekday.3" = "Wednesday";
+"weekday.4" = "Thursday";
+"weekday.5" = "Friday";
+"weekday.6" = "Saturday";
+"weekday.7" = "Sunday";
+"weekday.short.1" = "Mon";
+"weekday.short.2" = "Tue";
+"weekday.short.3" = "Wed";
+"weekday.short.4" = "Thu";
+"weekday.short.5" = "Fri";
+"weekday.short.6" = "Sat";
+"weekday.short.7" = "Sun";
+
+/* Sections */
+"emoji.title" = "Emoji";
+"color.title" = "Color";
+
+/* Buttons */
+"button.cancel" = "Cancel";
+"button.create" = "Create";
+"button.done" = "Done";
+"button.save" = "Save";
+
+/* Alerts/actions */
+"action.cancel" = "Cancel";
+"action.delete" = "Delete";
+"action.pin" = "Pin";
+"action.edit" = "Edit";
+"tracker.delete.alert.title" = "Delete habit?";
+"tracker.delete.alert.message" = "This action cannot be undone.";
+
+/* Tab Bar */
+"tab.trackers" = "Trackers";
+"tab.statistics" = "Statistics";
+
+/* Statistics */
+"statistics.title" = "Statistics";
+"statistics.empty" = "Nothing to analyze yet";
+"statistics.best.period" = "Best period";
+"statistics.ideal.days" = "Ideal days";
+"statistics.completed.trackers" = "Trackers completed";
+"statistics.average.value" = "Average value";
+
+/* Misc */
+"limit.38" = "38 character limit";
+"days.count" = "%d day";

@@ -1,49 +1,49 @@
 import UIKit
 
-final class MainTabBarController: UITabBarController {
-
+class MainTabBarController: UITabBarController {
+    
+    private let topBorderView = UIView()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        let tabAppearance = UITabBarAppearance()
-        tabAppearance.configureWithOpaqueBackground()
-        tabAppearance.backgroundColor = UIColor(resource: .ypWhite)
-        
-        let titleAttributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 10, weight: .medium)
-        ]
-        
-        tabAppearance.stackedLayoutAppearance.normal.titleTextAttributes = titleAttributes
-        tabAppearance.stackedLayoutAppearance.selected.titleTextAttributes = titleAttributes
-        
-        tabBar.standardAppearance = tabAppearance
-        tabBar.scrollEdgeAppearance = tabAppearance
-        
-        let trackersVC = TrackersViewController()
-        trackersVC.tabBarItem = UITabBarItem(
-            title: "Трекеры",
-            image: UIImage(resource: .tracker),
-            selectedImage: nil
-        )
-        
-        let statisticsVC = StatisticsViewController()
-        statisticsVC.tabBarItem = UITabBarItem(
-            title: "Статистика",
-            image: UIImage(resource: .statistic),
-            selectedImage: nil
-        )
-        
-        viewControllers = [trackersVC, statisticsVC]
-        
-        tabBar.addTopBorder(color: .ypGray, height: 0.5)
+        setupTabBar()
+        setupTopBorder()
     }
-}
-
-extension UITabBar {
-    func addTopBorder(color: UIColor = .lightGray, height: CGFloat = 1.0) {
-        let topBorder = CALayer()
-        topBorder.backgroundColor = color.cgColor
-        topBorder.frame = CGRect(x: 0, y: 0, width: self.frame.width, height: height)
-        self.layer.addSublayer(topBorder)
+    
+    private func setupTabBar() {
+        let trackersViewController = TrackersViewController()
+        let trackersNavigationController = UINavigationController(rootViewController: trackersViewController)
+        trackersNavigationController.tabBarItem = UITabBarItem(
+            title: NSLocalizedString("tab.trackers", comment: "Trackers tab"),
+            image: UIImage(named: "TrackerImage"),
+            selectedImage: UIImage(named: "TrackerImage")
+        )
+        
+        let statisticsViewController = StatisticsViewController()
+        let statisticsNavigationController = UINavigationController(rootViewController: statisticsViewController)
+        statisticsNavigationController.tabBarItem = UITabBarItem(
+            title: NSLocalizedString("tab.statistics", comment: "Statistics tab"),
+            image: UIImage(named: "StatisticImage"),
+            selectedImage: UIImage(named: "StatisticImage")
+        )
+        
+        viewControllers = [trackersNavigationController, statisticsNavigationController]
+        
+        tabBar.backgroundColor = UIColor(named: "YPWhite")
+        tabBar.tintColor = UIColor(named: "YPBlue")
+        tabBar.unselectedItemTintColor = UIColor(named: "YPGray")
+    }
+    
+    private func setupTopBorder() {
+        topBorderView.translatesAutoresizingMaskIntoConstraints = false
+        topBorderView.backgroundColor = UIColor(named: "TabbarBorder")
+        view.addSubview(topBorderView)
+        
+        NSLayoutConstraint.activate([
+            topBorderView.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -4),
+            topBorderView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            topBorderView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            topBorderView.heightAnchor.constraint(equalToConstant: 1)
+        ])
     }
 }

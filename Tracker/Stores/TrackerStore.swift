@@ -1,92 +1,123 @@
+import Foundation
 import CoreData
 
-protocol TrackerStoreDelegate: AnyObject {
-    func didUpdateTrackers()
+protocol TrackerStoreProtocol {
+    func createTracker(name: String, color: String, emoji: String, schedule: [Int], categoryTitle: String) -> Tracker
+    func fetchTrackers() -> [Tracker]
+    func fetchCategories() -> [TrackerCategory]
+    func startObservingChanges(onUpdate: @escaping ([Tracker]) -> Void)
+    func stopObservingChanges()
+    func deleteTracker(_ tracker: Tracker)
+    func updateTracker(_ tracker: Tracker, newName: String, newEmoji: String, newColor: String, newSchedule: [Int], newCategoryTitle: String?)
+    func getOrCreateCategory(title: String) -> TrackerCategory
 }
 
-final class TrackerStore: NSObject {
-    private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>!
-    weak var delegate: TrackerStoreDelegate?
+class TrackerStore: NSObject, TrackerStoreProtocol {
+    private let coreDataManager = CoreDataManager.shared
+    private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
+    private var onUpdateCallback: (([Tracker]) -> Void)?
     
-    init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
-        self.context = context
-        super.init()
-        setupFetchedResultsController()
+    func createTracker(name: String, color: String, emoji: String, schedule: [Int], categoryTitle: String) -> Tracker {
+        let coreDataTracker = coreDataManager.createTracker(
+            name: name,
+            color: color,
+            emoji: emoji,
+            schedule: schedule,
+            categoryTitle: categoryTitle
+        )
+        return coreDataTracker.toTracker()
     }
     
-    private func setupFetchedResultsController() {
+    func fetchTrackers() -> [Tracker] {
+        let coreDataTrackers = coreDataManager.fetchTrackers()
+        return coreDataTrackers.map { $0.toTracker() }
+    }
+    
+    func updateTracker(_ tracker: Tracker, newName: String, newEmoji: String, newColor: String, newSchedule: [Int], newCategoryTitle: String?) {
+        let request = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        do {
+            let coreDataTrackers = try coreDataManager.context.fetch(request)
+            if let coreDataTracker = coreDataTrackers.first {
+                coreDataTracker.schedule = newSchedule as NSArray
+                coreDataTracker.name = newName
+                coreDataTracker.emoji = newEmoji
+                coreDataTracker.color = newColor
+                if let newCategoryTitle = newCategoryTitle, !newCategoryTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    let category = coreDataManager.getOrCreateCategory(title: newCategoryTitle)
+                    coreDataTracker.category = category
+                }
+                coreDataManager.saveContext()
+            }
+        } catch {
+            print("Error finding tracker to update: \(error)")
+        }
+    }
+    
+    func deleteTracker(_ tracker: Tracker) {
+        let request = TrackerCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        do {
+            let coreDataTrackers = try coreDataManager.context.fetch(request)
+            if let coreDataTracker = coreDataTrackers.first {
+                coreDataManager.deleteTracker(coreDataTracker)
+            }
+        } catch {
+            print("Error finding tracker to delete: \(error)")
+        }
+    }
+    
+    func getOrCreateCategory(title: String) -> TrackerCategory {
+        let coreDataCategory = coreDataManager.getOrCreateCategory(title: title)
+        return coreDataCategory.toTrackerCategory()
+    }
+    
+    func fetchCategories() -> [TrackerCategory] {
+        let coreDataCategories = coreDataManager.fetchCategories()
+        return coreDataCategories.map { $0.toTrackerCategory() }
+    }
+    
+    func startObservingChanges(onUpdate: @escaping ([Tracker]) -> Void) {
+        self.onUpdateCallback = onUpdate
+        
         let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
-            managedObjectContext: context,
+            managedObjectContext: coreDataManager.context,
             sectionNameKeyPath: nil,
-            cacheName: nil
+            cacheName: "TrackerStore"
         )
-        fetchedResultsController.delegate = self
+        
+        fetchedResultsController?.delegate = self
         
         do {
-            try fetchedResultsController.performFetch()
+            try fetchedResultsController?.performFetch()
+            notifyUpdate()
         } catch {
-            print("Ошибка fetch: \(error)")
+            print("Error performing fetch: \(error)")
         }
     }
     
-    func fetchAll() -> [Tracker] {
-        let objects = fetchedResultsController.fetchedObjects ?? []
-        return objects.compactMap { TrackerStore.mapToTracker($0) }
+    func stopObservingChanges() {
+        fetchedResultsController?.delegate = nil
+        fetchedResultsController = nil
+        onUpdateCallback = nil
     }
     
-    func create(_ tracker: Tracker, in category: TrackerCategoryCoreData) throws {
-        let trackerCD = TrackerCoreData(context: context)
-        trackerCD.identifier = tracker.id
-        trackerCD.name = tracker.name
-        trackerCD.color = tracker.color
-        trackerCD.emoji = tracker.emoji
-        trackerCD.schedule = tracker.schedule.map { $0.rawValue } as NSObject
-        trackerCD.category = category
-        
-        try context.save()
-    }
-    
-    func delete(by id: UUID) throws {
-        let request: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "identifier == %@", id as CVarArg)
-        if let tracker = try context.fetch(request).first {
-            context.delete(tracker)
-            try context.save()
-        }
+    private func notifyUpdate() {
+        guard let fetchedObjects = fetchedResultsController?.fetchedObjects else { return }
+        let trackers = fetchedObjects.map { $0.toTracker() }
+        onUpdateCallback?(trackers)
     }
 }
 
+// MARK: - NSFetchedResultsControllerDelegate
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        delegate?.didUpdateTrackers()
-    }
-}
-
-extension TrackerStore {
-    static func mapToTracker(_ trackerCD: TrackerCoreData) -> Tracker? {
-        guard
-            let id = trackerCD.identifier,
-            let name = trackerCD.name,
-            let color = trackerCD.color,
-            let emoji = trackerCD.emoji,
-            let scheduleRaw = trackerCD.schedule as? [Int]
-        else {
-            return nil
-        }
-        
-        let schedule = scheduleRaw.compactMap { Weekday(rawValue: $0) }
-        
-        return Tracker(
-            id: id,
-            name: name,
-            color: color,
-            emoji: emoji,
-            schedule: schedule
-        )
+        notifyUpdate()
     }
 }

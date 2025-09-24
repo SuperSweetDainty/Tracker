@@ -1,65 +1,52 @@
 import Foundation
-import UIKit
 
-enum Weekday: Int, CaseIterable, Codable {
-    case monday, tuesday, wednesday, thursday, friday, saturday, sunday
-}
-
-struct Tracker {
+struct Tracker: Codable {
     let id: UUID
     let name: String
     let color: String
     let emoji: String
-    let schedule: [Weekday]
+    let schedule: [Int]
     
-    var uiColor: UIColor {
-          UIColor(named: color) ?? .ypBackground
-      }
+    init(id: UUID, name: String, color: String, emoji: String, schedule: [Int]) {
+        self.id = id
+        self.name = name
+        self.color = color
+        self.emoji = emoji
+        self.schedule = schedule
+    }
+    
+    init(name: String, color: String, emoji: String, schedule: [Int]) {
+        self.id = UUID()
+        self.name = name
+        self.color = color
+        self.emoji = emoji
+        self.schedule = schedule
+    }
+    
+    func isScheduled(for date: Date) -> Bool {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        let adjustedWeekday = (weekday + 5) % 7
+        return schedule.contains(adjustedWeekday)
+    }
 }
 
-struct TrackerCategory {
+struct TrackerCategory: Codable {
     let title: String
-    var trackers: [Tracker]
+    let trackers: [Tracker]
+    
+    init(title: String, trackers: [Tracker]) {
+        self.title = title
+        self.trackers = trackers
+    }
 }
 
-struct TrackerRecord: Hashable {
+struct TrackerRecord: Codable {
     let trackerId: UUID
     let date: Date
-
-    static func == (lhs: TrackerRecord, rhs: TrackerRecord) -> Bool {
-        lhs.trackerId == rhs.trackerId &&
-        Calendar.current.isDate(lhs.date, inSameDayAs: rhs.date)
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(trackerId)
-        let startOfDay = Calendar.current.startOfDay(for: date)
-        hasher.combine(startOfDay.timeIntervalSince1970)
-    }
-}
-
-extension Weekday {
-    var title: String {
-        switch self {
-        case .monday: return "Понедельник"
-        case .tuesday: return "Вторник"
-        case .wednesday: return "Среда"
-        case .thursday: return "Четверг"
-        case .friday: return "Пятница"
-        case .saturday: return "Суббота"
-        case .sunday: return "Воскресенье"
-        }
-    }
     
-    var shortTitle: String {
-        switch self {
-        case .monday: return "Пн"
-        case .tuesday: return "Вт"
-        case .wednesday: return "Ср"
-        case .thursday: return "Чт"
-        case .friday: return "Пт"
-        case .saturday: return "Сб"
-        case .sunday: return "Вс"
-        }
+    init(trackerId: UUID, date: Date) {
+        self.trackerId = trackerId
+        self.date = date
     }
 }
