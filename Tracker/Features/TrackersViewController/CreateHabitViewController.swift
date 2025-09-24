@@ -1,10 +1,10 @@
 import UIKit
 
-protocol EditTrackerViewControllerDelegate: AnyObject {
-    func didUpdateTracker(_ tracker: Tracker, newName: String, newEmoji: String, newColor: String, newSchedule: [Int], newCategory: TrackerCategory?)
+protocol CreateHabitViewControllerDelegate: AnyObject {
+    func didCreateTracker(_ tracker: Tracker, category: TrackerCategory)
 }
 
-final class EditTrackerViewController: UIViewController {
+final class CreateHabitViewController: UIViewController {
     
     // MARK: - UI Elements
     private let titleLabel = UILabel()
@@ -18,7 +18,7 @@ final class EditTrackerViewController: UIViewController {
     private let scheduleValueLabel = UILabel()
     private let dividerView = UIView()
     private let cancelButton = UIButton(type: .system)
-    private let saveButton = UIButton(type: .system)
+    private let createButton = UIButton(type: .system)
     private let characterLimitLabel = UILabel()
     private let categoryAreaView = UIView()
     private let scheduleAreaView = UIView()
@@ -43,7 +43,7 @@ final class EditTrackerViewController: UIViewController {
     private let maxCharacterCount = 38
     private var isFormValid = false {
         didSet {
-            updateSaveButtonState()
+            updateCreateButtonState()
         }
     }
     private var selectedDays: Set<Int> = []
@@ -66,53 +66,14 @@ final class EditTrackerViewController: UIViewController {
     ]
     
     // MARK: - Delegate
-    weak var delegate: EditTrackerViewControllerDelegate?
-    private let tracker: Tracker
-    
-    // MARK: - Initialization
-    init(tracker: Tracker) {
-        self.tracker = tracker
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    weak var delegate: CreateHabitViewControllerDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupInitialData()
         setupUI()
         setupConstraints()
         setupKeyboardHandling()
-        updateUIWithInitialData()
-    }
-    
-    private func setupInitialData() {
-        nameTextField.text = tracker.name
-        selectedEmoji = tracker.emoji
-        selectedColor = tracker.color
-        selectedDays = Set(tracker.schedule)
-        let categoryStore = TrackerCategoryStore()
-        let categories = categoryStore.fetchCategories()
-        selectedCategory = categories.first { category in
-            category.trackers.contains { $0.id == tracker.id }
-        }
-        validateForm()
-    }
-    
-    private func updateUIWithInitialData() {
-        if let category = selectedCategory {
-            categoryValueLabel.text = category.title
-            categoryValueLabel.isHidden = false
-        }
-        if !selectedDays.isEmpty {
-            scheduleValueLabel.text = getScheduleText()
-            scheduleValueLabel.isHidden = false
-        }
-        emojiCollectionView.reloadData()
-        colorCollectionView.reloadData()
     }
     
     private func setupUI() {
@@ -130,7 +91,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = NSLocalizedString("habit.edit.title", comment: "Редактирование привычки")
+        titleLabel.text = "Новая привычка"
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         titleLabel.textColor = UIColor(named: "YPBlack")
         titleLabel.textAlignment = .center
@@ -139,7 +100,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupNameTextField() {
         nameTextField.translatesAutoresizingMaskIntoConstraints = false
-        nameTextField.placeholder = NSLocalizedString("habit.name.placeholder", comment: "Плейсхолдер имени трекера")
+        nameTextField.placeholder = "Введите название трекера"
         nameTextField.font = UIFont.systemFont(ofSize: 17)
         nameTextField.textColor = UIColor(named: "YPBlack")
         nameTextField.backgroundColor = UIColor(named: "YPBackground")
@@ -168,13 +129,12 @@ final class EditTrackerViewController: UIViewController {
         contentView.addSubview(categoryContainerView)
         
         categoryLabel.translatesAutoresizingMaskIntoConstraints = false
-        categoryLabel.text = NSLocalizedString("category.title", comment: "Категория")
+        categoryLabel.text = "Категория"
         categoryLabel.font = UIFont.systemFont(ofSize: 17)
         categoryLabel.textColor = UIColor(named: "YPBlack")
         categoryContainerView.addSubview(categoryLabel)
         
         categoryArrowImageView.translatesAutoresizingMaskIntoConstraints = false
-//        categoryArrowImageView.image = UIImage(systemName: "chevron.right")
         categoryArrowImageView.tintColor = UIColor(named: "YPGray")
         categoryContainerView.addSubview(categoryArrowImageView)
         
@@ -190,18 +150,17 @@ final class EditTrackerViewController: UIViewController {
         categoryContainerView.addSubview(dividerView)
         
         scheduleLabel.translatesAutoresizingMaskIntoConstraints = false
-        scheduleLabel.text = NSLocalizedString("schedule.title", comment: "Расписание")
+        scheduleLabel.text = "Расписание"
         scheduleLabel.font = UIFont.systemFont(ofSize: 17)
         scheduleLabel.textColor = UIColor(named: "YPBlack")
         categoryContainerView.addSubview(scheduleLabel)
         
         scheduleArrowImageView.translatesAutoresizingMaskIntoConstraints = false
-//        scheduleArrowImageView.image = UIImage(systemName: "chevron.right")
         scheduleArrowImageView.tintColor = UIColor(named: "YPGray")
         categoryContainerView.addSubview(scheduleArrowImageView)
         
         scheduleValueLabel.translatesAutoresizingMaskIntoConstraints = false
-        scheduleValueLabel.text = ""
+        scheduleValueLabel.text = "Каждый день"
         scheduleValueLabel.font = UIFont.systemFont(ofSize: 17)
         scheduleValueLabel.textColor = UIColor(named: "YPGray")
         scheduleValueLabel.isHidden = true
@@ -230,7 +189,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupButtons() {
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setTitle(NSLocalizedString("button.cancel", comment: "Отменить"), for: .normal)
+        cancelButton.setTitle("Отменить", for: .normal)
         cancelButton.setTitleColor(UIColor(named: "YPRed"), for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         cancelButton.backgroundColor = UIColor(named: "YPWhite")
@@ -240,15 +199,15 @@ final class EditTrackerViewController: UIViewController {
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         view.addSubview(cancelButton)
         
-        saveButton.translatesAutoresizingMaskIntoConstraints = false
-        saveButton.setTitle(NSLocalizedString("button.save", comment: "Сохранить"), for: .normal)
-        saveButton.setTitleColor(UIColor(named: "YPWhite"), for: .normal)
-        saveButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        saveButton.backgroundColor = UIColor(named: "YPBlack")
-        saveButton.layer.cornerRadius = 16
-        saveButton.isEnabled = true
-        saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
-        view.addSubview(saveButton)
+        createButton.translatesAutoresizingMaskIntoConstraints = false
+        createButton.setTitle("Создать", for: .normal)
+        createButton.setTitleColor(UIColor.white, for: .normal)
+        createButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        createButton.backgroundColor = UIColor.systemGray
+        createButton.layer.cornerRadius = 16
+        createButton.isEnabled = false
+        createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+        view.addSubview(createButton)
     }
     
     private func setupScrollView() {
@@ -266,7 +225,7 @@ final class EditTrackerViewController: UIViewController {
     
     private func setupCharacterLimitLabel() {
         characterLimitLabel.translatesAutoresizingMaskIntoConstraints = false
-        characterLimitLabel.text = NSLocalizedString("limit.38", comment: "Ограничение длины")
+        characterLimitLabel.text = "Ограничение 38 символов"
         characterLimitLabel.font = UIFont.systemFont(ofSize: 17)
         characterLimitLabel.textColor = UIColor(named: "YPRed")
         characterLimitLabel.textAlignment = .center
@@ -275,6 +234,7 @@ final class EditTrackerViewController: UIViewController {
     }
     
     private func setupEmojiSection() {
+        
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
         emojiLabel.text = "Emoji"
         emojiLabel.font = UIFont.boldSystemFont(ofSize: 19)
@@ -299,6 +259,7 @@ final class EditTrackerViewController: UIViewController {
     }
     
     private func setupColorSection() {
+        
         colorLabel.translatesAutoresizingMaskIntoConstraints = false
         colorLabel.text = "Цвет"
         colorLabel.font = UIFont.boldSystemFont(ofSize: 19)
@@ -329,6 +290,9 @@ final class EditTrackerViewController: UIViewController {
         
         scheduleLabelTopConstraint = scheduleLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 91)
         scheduleValueLabelTopConstraint = scheduleValueLabel.topAnchor.constraint(equalTo: categoryContainerView.topAnchor, constant: 106)
+        
+        categoryValueLabel.isHidden = true
+        scheduleValueLabel.isHidden = true
         
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -419,10 +383,10 @@ final class EditTrackerViewController: UIViewController {
             cancelButton.widthAnchor.constraint(equalToConstant: 166),
             cancelButton.heightAnchor.constraint(equalToConstant: 60),
             
-            saveButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            saveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            saveButton.widthAnchor.constraint(equalToConstant: 161),
-            saveButton.heightAnchor.constraint(equalToConstant: 60)
+            createButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            createButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            createButton.widthAnchor.constraint(equalToConstant: 161),
+            createButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
@@ -436,13 +400,17 @@ final class EditTrackerViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
-    private func updateSaveButtonState() {
+
+    
+    private func updateCreateButtonState() {
         if isFormValid {
-            saveButton.backgroundColor = UIColor(named: "YPBlack")
-            saveButton.isEnabled = true
+            createButton.backgroundColor = UIColor(named: "YPBlack")
+            createButton.setTitleColor(UIColor(named: "YPWhite"), for: .normal)
+            createButton.isEnabled = true
         } else {
-            saveButton.backgroundColor = UIColor(named: "YPGray")
-            saveButton.isEnabled = false
+            createButton.backgroundColor = UIColor.systemGray
+            createButton.setTitleColor(UIColor.white, for: .normal)
+            createButton.isEnabled = false
         }
     }
     
@@ -455,30 +423,8 @@ final class EditTrackerViewController: UIViewController {
         isFormValid = hasName && hasSchedule && hasEmoji && hasColor && hasCategory
     }
     
-    private func getScheduleText() -> String {
-        if selectedDays.isEmpty {
-            return ""
-        }
-        
-        let daysOfWeek = [
-            NSLocalizedString("weekday.short.1", comment: "Пн"),
-            NSLocalizedString("weekday.short.2", comment: "Вт"),
-            NSLocalizedString("weekday.short.3", comment: "Ср"),
-            NSLocalizedString("weekday.short.4", comment: "Чт"),
-            NSLocalizedString("weekday.short.5", comment: "Пт"),
-            NSLocalizedString("weekday.short.6", comment: "Сб"),
-            NSLocalizedString("weekday.short.7", comment: "Вс")
-        ]
-        let selectedDayNames = selectedDays.sorted().map { daysOfWeek[$0] }
-        
-        if selectedDays.count == 7 {
-            return NSLocalizedString("schedule.everyday", comment: "Каждый день")
-        } else {
-            return selectedDayNames.joined(separator: ", ")
-        }
-    }
-    
     // MARK: - Actions
+    
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
@@ -497,6 +443,10 @@ final class EditTrackerViewController: UIViewController {
     }
     
     @objc private func scheduleTapped() {
+        if !(nameTextField.text?.isEmpty ?? true) {
+            categoryValueLabel.isHidden = false
+        }
+        
         let scheduleViewController = ScheduleViewController()
         scheduleViewController.modalPresentationStyle = .pageSheet
         
@@ -511,29 +461,43 @@ final class EditTrackerViewController: UIViewController {
         dismiss(animated: true)
     }
     
-    @objc private func saveButtonTapped() {
-        delegate?.didUpdateTracker(
-            tracker,
-            newName: nameTextField.text ?? "",
-            newEmoji: selectedEmoji,
-            newColor: selectedColor,
-            newSchedule: Array(selectedDays),
-            newCategory: selectedCategory
+        @objc private func createButtonTapped() {
+        guard let category = selectedCategory else { return }
+        
+        let tracker = Tracker(
+            name: nameTextField.text ?? "",
+            color: selectedColor,
+            emoji: selectedEmoji,
+            schedule: Array(selectedDays)
         )
+        
+        delegate?.didCreateTracker(tracker, category: category)
         
         dismiss(animated: true)
     }
     
-    private func updateScheduleValue(with days: Set<Int>) {
+        private func updateScheduleValue(with days: Set<Int>) {
         selectedDays = days
         
         if selectedDays.isEmpty {
             scheduleValueLabel.isHidden = true
             return
         }
+        if selectedDays.isEmpty {
+            scheduleValueLabel.isHidden = true
+            return
+        }
         
         scheduleValueLabel.isHidden = false
-        scheduleValueLabel.text = getScheduleText()
+        
+        let daysOfWeek = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+        let selectedDayNames = selectedDays.sorted().map { daysOfWeek[$0] }
+        
+        if selectedDays.count == 7 {
+            scheduleValueLabel.text = "Каждый день"
+        } else {
+            scheduleValueLabel.text = selectedDayNames.joined(separator: ", ")
+        }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             UIView.animate(withDuration: 0.5, animations: {
@@ -548,7 +512,8 @@ final class EditTrackerViewController: UIViewController {
 }
 
 // MARK: - UITextFieldDelegate
-extension EditTrackerViewController: UITextFieldDelegate {
+
+extension CreateHabitViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
@@ -573,7 +538,8 @@ extension EditTrackerViewController: UITextFieldDelegate {
 }
 
 // MARK: - UICollectionViewDataSource
-extension EditTrackerViewController: UICollectionViewDataSource {
+
+extension CreateHabitViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if collectionView == emojiCollectionView {
             return emojis.count
@@ -602,22 +568,22 @@ extension EditTrackerViewController: UICollectionViewDataSource {
 }
 
 // MARK: - UICollectionViewDelegate
-extension EditTrackerViewController: UICollectionViewDelegate {
+
+extension CreateHabitViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == emojiCollectionView {
             selectedEmoji = emojis[indexPath.item]
             emojiCollectionView.reloadData()
-            validateForm()
         } else if collectionView == colorCollectionView {
             selectedColor = colors[indexPath.item]
             colorCollectionView.reloadData()
-            validateForm()
         }
     }
 }
 
 // MARK: - UIGestureRecognizerDelegate
-extension EditTrackerViewController: UIGestureRecognizerDelegate {
+
+extension CreateHabitViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         let location = touch.location(in: view)
         let textFieldFrame = nameTextField.convert(nameTextField.bounds, to: view)
@@ -631,7 +597,8 @@ extension EditTrackerViewController: UIGestureRecognizerDelegate {
 }
 
 // MARK: - UIScrollViewDelegate
-extension EditTrackerViewController: UIScrollViewDelegate {
+
+extension CreateHabitViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let scrollOffset = scrollView.contentOffset.y
         let shouldHideHeader = scrollOffset > 50
@@ -649,7 +616,8 @@ extension EditTrackerViewController: UIScrollViewDelegate {
 }
 
 // MARK: - CategoryViewControllerDelegate
-extension EditTrackerViewController: CategoryViewControllerDelegate {
+
+extension CreateHabitViewController: CategoryViewControllerDelegate {
     func didSelectCategory(_ category: TrackerCategory) {
         selectedCategory = category
         categoryValueLabel.text = category.title
@@ -665,4 +633,4 @@ extension EditTrackerViewController: CategoryViewControllerDelegate {
         
         validateForm()
     }
-}
+} 

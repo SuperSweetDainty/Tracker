@@ -1,98 +1,71 @@
-import UIKit
+import Foundation
 
 protocol CategoryViewModelProtocol {
     var categories: [TrackerCategory] { get }
     var selectedCategory: TrackerCategory? { get }
-
     var onCategoriesUpdate: (() -> Void)? { get set }
     var onCategorySelected: ((TrackerCategory) -> Void)? { get set }
     var onCategoryCreated: ((TrackerCategory) -> Void)? { get set }
-
+    
     func loadCategories()
     func selectCategory(_ category: TrackerCategory)
     func createCategory(title: String)
-    func deleteCategory(_ category: TrackerCategory)
     func updateCategoryTitle(_ category: TrackerCategory, newTitle: String)
+    func deleteCategory(_ category: TrackerCategory)
 }
 
 final class CategoryViewModel: CategoryViewModelProtocol {
-
-    // MARK: - Properties
-    private let store: TrackerCategoryStore
-
-    private(set) var categories: [TrackerCategory] = [] {
-        didSet { DispatchQueue.main.async { [weak self] in self?.onCategoriesUpdate?() } }
-    }
-    private(set) var selectedCategory: TrackerCategory?
-
+    
+    // MARK: - Bindings
     var onCategoriesUpdate: (() -> Void)?
     var onCategorySelected: ((TrackerCategory) -> Void)?
     var onCategoryCreated: ((TrackerCategory) -> Void)?
-
-    // MARK: - Init
-    init(store: TrackerCategoryStore = TrackerCategoryStore()) {
-        self.store = store
-        self.store.delegate = self
-        loadCategories()
+    
+    // MARK: - Properties
+    private let categoryStore: TrackerCategoryStoreProtocol
+    private(set) var categories: [TrackerCategory] = []
+    private(set) var selectedCategory: TrackerCategory?
+    
+    // MARK: - Private Methods
+    private func setupObservers() {
+        categoryStore.startObservingChanges { [weak self] categories in
+            self?.categories = categories
+            self?.onCategoriesUpdate?()
+        }
     }
-
+    
+    // MARK: - Initialization
+    init(categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()) {
+        self.categoryStore = categoryStore
+        setupObservers()
+    }
+    
+    deinit {
+        categoryStore.stopObservingChanges()
+    }
+    
     // MARK: - Public Methods
     func loadCategories() {
-        let loaded = store.fetchAll()
-        self.categories = loaded.sorted { $0.title.lowercased() < $1.title.lowercased() }
+        categories = categoryStore.fetchCategories()
+        onCategoriesUpdate?()
     }
-
+    
     func selectCategory(_ category: TrackerCategory) {
         selectedCategory = category
-        DispatchQueue.main.async { [weak self] in
-            self?.onCategorySelected?(category)
-        }
+        onCategorySelected?(category)
     }
-
+    
     func createCategory(title: String) {
-        do {
-            let categoryCD = try store.create(title: title)
-
-            loadCategories()
-            let trackers = (categoryCD.trackers as? Set<TrackerCoreData>)?.compactMap {
-                TrackerStore.mapToTracker($0)
-            } ?? []
-            let newCategory = TrackerCategory(title: categoryCD.title ?? title, trackers: trackers)
-
-            DispatchQueue.main.async { [weak self] in
-                self?.onCategoryCreated?(newCategory)
-            }
-
-        } catch {
-            print("CategoryViewModel.createCategory error: \(error)")
-        }
+        let newCategory = categoryStore.createCategory(title: title)
+        AnalyticsManager.shared.trackCategoryCreated(categoryName: title)
+        onCategoryCreated?(newCategory)
     }
-
-    func deleteCategory(_ category: TrackerCategory) {
-        do {
-            try store.delete(by: category.title)
-            loadCategories()
-        } catch {
-            print("CategoryViewModel.deleteCategory error: \(error)")
-        }
-    }
-
+    
     func updateCategoryTitle(_ category: TrackerCategory, newTitle: String) {
-        do {
-            if let categoryCD = try store.fetch(by: category.title) {
-                categoryCD.title = newTitle
-                try store.context.save()
-                loadCategories()
-            }
-        } catch {
-            print("CategoryViewModel.updateCategoryTitle error: \(error)")
-        }
+        categoryStore.updateCategoryTitle(category, newTitle: newTitle)
     }
-}
-
-// MARK: - TrackerCategoryStoreDelegate
-extension CategoryViewModel: TrackerCategoryStoreDelegate {
-    func didUpdateCategories() {
-        loadCategories()
+    
+    func deleteCategory(_ category: TrackerCategory) {
+        categoryStore.deleteCategory(category)
     }
 }

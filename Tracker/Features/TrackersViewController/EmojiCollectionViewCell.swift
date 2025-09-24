@@ -1,8 +1,18 @@
 import UIKit
 
+// MARK: - UIFont Extension
+extension UIFont {
+    static func emojiTitleFont(size: CGFloat = 32) -> UIFont {
+        UIFont.boldSystemFont(ofSize: size)
+    }
+}
+
 final class EmojiCollectionViewCell: UICollectionViewCell {
     
+    // MARK: - UI Elements
     private let emojiLabel = UILabel()
+    
+    // MARK: - Properties
     static let identifier = "EmojiCell"
     
     override init(frame: CGRect) {
@@ -14,25 +24,13 @@ final class EmojiCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func configure(with emoji: String, isSelected: Bool) {
-        emojiLabel.text = emoji
-        
-        if isSelected {
-            contentView.backgroundColor = UIColor(resource: .ypDarkGray)
-            contentView.layer.cornerRadius = 8
-        } else {
-            contentView.backgroundColor = .clear
-            contentView.layer.cornerRadius = 0
-        }
-    }
-    
     private func setupUI() {
-        contentView.backgroundColor = .clear
+        contentView.backgroundColor = UIColor.clear
         
         emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        emojiLabel.font = .systemFont(ofSize: 32, weight: .bold)
+        emojiLabel.font = UIFont.emojiTitleFont()
         emojiLabel.textAlignment = .center
-        emojiLabel.textColor = UIColor(resource: .ypBlack)
+        emojiLabel.textColor = UIColor(named: "YPBlack")
         contentView.addSubview(emojiLabel)
         
         NSLayoutConstraint.activate([
@@ -41,5 +39,17 @@ final class EmojiCollectionViewCell: UICollectionViewCell {
             emojiLabel.widthAnchor.constraint(equalToConstant: 52),
             emojiLabel.heightAnchor.constraint(equalToConstant: 52)
         ])
+    }
+    
+    func configure(with emoji: String, isSelected: Bool) {
+        emojiLabel.text = emoji
+        
+        if isSelected {
+            contentView.backgroundColor = UIColor(named: "YPGray")?.withAlphaComponent(0.3)
+            contentView.layer.cornerRadius = 8
+        } else {
+            contentView.backgroundColor = UIColor.clear
+            contentView.layer.cornerRadius = 0
+        }
     }
 }

@@ -5,80 +5,86 @@ protocol EditCategoryViewControllerDelegate: AnyObject {
 }
 
 final class EditCategoryViewController: UIViewController {
-
+    
     // MARK: - UI Elements
     private let titleLabel = UILabel()
     private let categoryTextField = UITextField()
     private let doneButton = UIButton(type: .system)
     private let clearButton = UIButton(type: .system)
-
+    
     // MARK: - Properties
     private let category: TrackerCategory
     weak var delegate: EditCategoryViewControllerDelegate?
-
-    private var isFormValid: Bool = false {
-        didSet { updateDoneButtonAppearance() }
+    private var isFormValid = false {
+        didSet {
+            updateDoneButtonState()
+        }
     }
-
-    // MARK: - Init
+    
+    // MARK: - Initialization
     init(category: TrackerCategory) {
         self.category = category
         super.init(nibName: nil, bundle: nil)
     }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureUI()
-        setupKeyboardDismiss()
+        setupUI()
+        setupKeyboardHandling()
     }
-
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         categoryTextField.becomeFirstResponder()
     }
-
-    // MARK: - UI Setup
-    private func configureUI() {
-        view.backgroundColor = .white
-        setupTitleLabel()
-        setupTextField()
+    
+    // MARK: - Setup
+    private func setupUI() {
+        view.backgroundColor = UIColor(named: "YPWhite")
+        
+        setupTitle()
+        setupCategoryTextField()
         setupDoneButton()
     }
-
-    private func setupTitleLabel() {
+    
+    private func setupTitle() {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = NSLocalizedString("category.update.title", comment: "Редактирование категории")
-        titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
-        titleLabel.textColor = UIColor(resource: .ypBlack)
+        titleLabel.text = NSLocalizedString("category.edit.title", comment: "Редактирование категории")
+        titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        titleLabel.textColor = UIColor(named: "YPBlack")
         titleLabel.textAlignment = .center
         view.addSubview(titleLabel)
-
+        
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             titleLabel.heightAnchor.constraint(equalToConstant: 22)
         ])
     }
-
-    private func setupTextField() {
+    
+    private func setupCategoryTextField() {
         categoryTextField.translatesAutoresizingMaskIntoConstraints = false
         categoryTextField.text = category.title
-        categoryTextField.font = .systemFont(ofSize: 17)
-        categoryTextField.textColor = UIColor(resource: .ypBlack)
-        categoryTextField.backgroundColor = UIColor(resource: .ypLightGray) .withAlphaComponent(0.3)
+        categoryTextField.font = UIFont.systemFont(ofSize: 17)
+        categoryTextField.textColor = UIColor(named: "YPBlack")
+        categoryTextField.backgroundColor = UIColor(named: "YPBackground")
         categoryTextField.layer.cornerRadius = 16
+        categoryTextField.borderStyle = .none
         categoryTextField.delegate = self
-        categoryTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        categoryTextField.leftView = paddingView
         categoryTextField.leftViewMode = .always
-        categoryTextField.placeholder = NSLocalizedString("category.field.placeholder", comment: "Введите название категории")
-
-        categoryTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        
         setupClearButton()
+        
         view.addSubview(categoryTextField)
-
+        
         NSLayoutConstraint.activate([
             categoryTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             categoryTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -86,114 +92,141 @@ final class EditCategoryViewController: UIViewController {
             categoryTextField.heightAnchor.constraint(equalToConstant: 75)
         ])
     }
-
+    
     private func setupClearButton() {
         clearButton.translatesAutoresizingMaskIntoConstraints = false
         clearButton.setTitle("×", for: .normal)
-        clearButton.titleLabel?.font = .systemFont(ofSize: 22, weight: .medium)
-        clearButton.setTitleColor(UIColor(resource: .ypBlack), for: .normal)
-        clearButton.addTarget(self, action: #selector(clearTextField), for: .touchUpInside)
+        clearButton.setTitleColor(UIColor(named: "YPBlack"), for: .normal)
+        clearButton.titleLabel?.font = UIFont.systemFont(ofSize: 22, weight: .medium)
+        clearButton.backgroundColor = UIColor.clear
+        clearButton.addTarget(self, action: #selector(clearButtonTapped), for: .touchUpInside)
         clearButton.isHidden = categoryTextField.text?.isEmpty ?? true
-
-        let container = UIView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(clearButton)
-
+        
+        let clearContainer = UIView()
+        clearContainer.translatesAutoresizingMaskIntoConstraints = false
+        clearContainer.addSubview(clearButton)
+        
         NSLayoutConstraint.activate([
-            clearButton.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            clearButton.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            clearButton.centerXAnchor.constraint(equalTo: clearContainer.centerXAnchor),
+            clearButton.centerYAnchor.constraint(equalTo: clearContainer.centerYAnchor),
             clearButton.widthAnchor.constraint(equalToConstant: 30),
             clearButton.heightAnchor.constraint(equalToConstant: 30),
-            container.widthAnchor.constraint(equalToConstant: 52),
-            container.heightAnchor.constraint(equalToConstant: 75)
+            clearContainer.widthAnchor.constraint(equalToConstant: 52),
+            clearContainer.heightAnchor.constraint(equalToConstant: 75)
         ])
-
-        categoryTextField.rightView = container
+        
+        categoryTextField.rightView = clearContainer
         categoryTextField.rightViewMode = .whileEditing
     }
-
+    
     private func setupDoneButton() {
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.setTitle(NSLocalizedString("button.common.done", comment: "Готово"), for: .normal)
-        doneButton.setTitleColor(.white, for: .normal)
-        doneButton.backgroundColor = UIColor.systemGray
+        doneButton.setTitle(NSLocalizedString("button.done", comment: "Готово"), for: .normal)
+        doneButton.setTitleColor(UIColor.white, for: .normal)
+        doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        doneButton.backgroundColor = UIColor(named: "YPGray")
         doneButton.layer.cornerRadius = 16
         doneButton.isEnabled = false
         doneButton.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         view.addSubview(doneButton)
-
+        
         NSLayoutConstraint.activate([
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             doneButton.heightAnchor.constraint(equalToConstant: 60)
         ])
-
-        validateTextField()
-    }
-
-    // MARK: - Keyboard Handling
-    private func setupKeyboardDismiss() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        tap.cancelsTouchesInView = false
-        tap.delegate = self
-        view.addGestureRecognizer(tap)
-    }
-
-    // MARK: - Private Helpers
-    private func updateDoneButtonAppearance() {
-        doneButton.isEnabled = isFormValid
-        doneButton.backgroundColor = isFormValid ? UIColor(resource: .ypBlack) : UIColor.systemGray
-    }
-
-    private func validateTextField() {
-        let trimmedText = categoryTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let hasContent = !trimmedText.isEmpty
-        let changed = trimmedText != category.title
-        isFormValid = hasContent && changed
-        clearButton.isHidden = trimmedText.isEmpty
-    }
-
-    // MARK: - Actions
-    @objc private func dismissKeyboard() { view.endEditing(true) }
-
-    @objc private func clearTextField() {
-        categoryTextField.text = ""
-        validateTextField()
+        
+        validateForm()
     }
     
-    @objc private func textFieldDidChange(_ textField: UITextField) {
-        validateTextField()
+    private func setupKeyboardHandling() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
     }
-
+    
+    // MARK: - Private Methods
+    private func updateDoneButtonState() {
+        if isFormValid {
+            doneButton.backgroundColor = UIColor(named: "YPBlack")
+            doneButton.isEnabled = true
+        } else {
+            doneButton.backgroundColor = UIColor(named: "YPGray")
+            doneButton.isEnabled = false
+        }
+    }
+    
+    private func validateForm() {
+        let hasText = !(categoryTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let isDifferent = categoryTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) != category.title
+        isFormValid = hasText && isDifferent
+        
+        clearButton.isHidden = categoryTextField.text?.isEmpty ?? true
+    }
+    
+    // MARK: - Actions
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    @objc private func clearButtonTapped() {
+        categoryTextField.text = ""
+        validateForm()
+    }
+    
     @objc private func doneButtonTapped() {
-        let trimmedText = categoryTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !trimmedText.isEmpty, trimmedText != category.title else { return }
-        delegate?.didUpdateCategory(category, newTitle: trimmedText)
+        guard let newTitle = categoryTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !newTitle.isEmpty,
+              newTitle != category.title else {
+            return
+        }
+        
+        delegate?.didUpdateCategory(category, newTitle: newTitle)
         dismiss(animated: true)
     }
 }
 
 // MARK: - UITextFieldDelegate
 extension EditCategoryViewController: UITextFieldDelegate {
-    func textFieldDidBeginEditing(_ textField: UITextField) { validateTextField() }
-
-    func textFieldDidEndEditing(_ textField: UITextField) { validateTextField() }
-
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        validateForm()
+    }
+    
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        let current = textField.text ?? ""
-        let updated = (current as NSString).replacingCharacters(in: range, with: string)
-        if updated.count > 38 { return false }
-        validateTextField()
+        let currentText = textField.text ?? ""
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
+        
+        if newText.count > 50 {
+            return false
+        }
+        
+        let hasText = !newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let isDifferent = newText.trimmingCharacters(in: .whitespacesAndNewlines) != category.title
+        isFormValid = hasText && isDifferent
+        updateDoneButtonState()
+        
+        clearButton.isHidden = newText.isEmpty
+        
         return true
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        validateForm()
     }
 }
 
 // MARK: - UIGestureRecognizerDelegate
 extension EditCategoryViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        let touchPoint = touch.location(in: view)
+        let location = touch.location(in: view)
         let textFieldFrame = categoryTextField.convert(categoryTextField.bounds, to: view)
-        return !textFieldFrame.contains(touchPoint)
+        
+        if textFieldFrame.contains(location) {
+            return false
+        }
+        
+        return true
     }
 }

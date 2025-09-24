@@ -1,74 +1,103 @@
+import Foundation
 import CoreData
 
-protocol TrackerRecordStoreDelegate: AnyObject {
-    func didUpdateRecords()
+protocol TrackerRecordStoreProtocol {
+    func createRecord(trackerId: UUID, date: Date) -> TrackerRecord
+    func fetchRecords(for trackerId: UUID?) -> [TrackerRecord]
+    func deleteRecord(_ record: TrackerRecord)
+    func isTrackerCompleted(trackerId: UUID, date: Date) -> Bool
+    func toggleTrackerCompletion(trackerId: UUID, date: Date)
+    func getCompletedCount(for trackerId: UUID) -> Int
+    func startObservingChanges(for trackerId: UUID?, onUpdate: @escaping ([TrackerRecord]) -> Void)
+    func stopObservingChanges()
 }
 
-final class TrackerRecordStore: NSObject {
-    private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>!
-    weak var delegate: TrackerRecordStoreDelegate?
+class TrackerRecordStore: NSObject, TrackerRecordStoreProtocol {
+    private let coreDataManager = CoreDataManager.shared
+    private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>?
+    private var onUpdateCallback: (([TrackerRecord]) -> Void)?
     
-    init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
-        self.context = context
-        super.init()
-        setupFetchedResultsController()
-    }
-    
-    // MARK: - Fetch
-    func fetchAll() -> [TrackerRecord] {
-        let objects = fetchedResultsController.fetchedObjects ?? []
-        return objects.compactMap {
-            guard let trackerId = $0.trackerID, let date = $0.date else { return nil }
-            return TrackerRecord(trackerId: trackerId, date: date)
-        }
-    }
-    
-    // MARK: - Add / Delete
-    func addRecord(_ record: TrackerRecord) throws {
-        let newRecord = TrackerRecordCoreData(context: context)
-        newRecord.trackerID = record.trackerId
-        newRecord.date = record.date
-        try context.save()
-    }
-    
-    func deleteRecord(_ record: TrackerRecord) throws {
-        guard
-            let objects = fetchedResultsController.fetchedObjects
-        else { return }
+    func deleteRecord(_ record: TrackerRecord) {
+        let request = TrackerRecordCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "trackerId == %@ AND date == %@",
+                                      record.trackerId as CVarArg,
+                                      record.date as CVarArg)
         
-        if let objectToDelete = objects.first(where: {
-            $0.trackerID == record.trackerId &&
-            Calendar.current.isDate($0.date ?? Date(), inSameDayAs: record.date)
-        }) {
-            context.delete(objectToDelete)
-            try context.save()
+        do {
+            let coreDataRecords = try coreDataManager.context.fetch(request)
+            if let coreDataRecord = coreDataRecords.first {
+                coreDataManager.deleteRecord(coreDataRecord)
+            }
+        } catch {
+            print("Error finding record to delete: \(error)")
         }
     }
     
-    // MARK: - Setup
-    private func setupFetchedResultsController() {
+    func createRecord(trackerId: UUID, date: Date) -> TrackerRecord {
+        let coreDataRecord = coreDataManager.createRecord(trackerId: trackerId, date: date)
+        return coreDataRecord.toTrackerRecord()
+    }
+    
+    func toggleTrackerCompletion(trackerId: UUID, date: Date) {
+        coreDataManager.toggleTrackerCompletion(trackerId: trackerId, date: date)
+    }
+    
+    func getCompletedCount(for trackerId: UUID) -> Int {
+        return coreDataManager.fetchRecords(for: trackerId).count
+    }
+    
+    func fetchRecords(for trackerId: UUID?) -> [TrackerRecord] {
+        let coreDataRecords = coreDataManager.fetchRecords(for: trackerId)
+        return coreDataRecords.map { $0.toTrackerRecord() }
+    }
+    
+    func isTrackerCompleted(trackerId: UUID, date: Date) -> Bool {
+        return coreDataManager.isTrackerCompleted(trackerId: trackerId, date: date)
+    }
+    
+    func startObservingChanges(for trackerId: UUID?, onUpdate: @escaping ([TrackerRecord]) -> Void) {
+        self.onUpdateCallback = onUpdate
+        
         let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        
+        if let trackerId = trackerId {
+            request.predicate = NSPredicate(format: "trackerId == %@", trackerId as CVarArg)
+        }
         
         fetchedResultsController = NSFetchedResultsController(
             fetchRequest: request,
-            managedObjectContext: context,
+            managedObjectContext: coreDataManager.context,
             sectionNameKeyPath: nil,
-            cacheName: nil
+            cacheName: "TrackerRecordStore"
         )
-        fetchedResultsController.delegate = self
+        
+        fetchedResultsController?.delegate = self
         
         do {
-            try fetchedResultsController.performFetch()
+            try fetchedResultsController?.performFetch()
+            notifyUpdate()
         } catch {
-            print("Ошибка fetch records: \(error)")
+            print("Error performing fetch: \(error)")
         }
+    }
+    
+    func stopObservingChanges() {
+        fetchedResultsController?.delegate = nil
+        fetchedResultsController = nil
+        onUpdateCallback = nil
+    }
+    
+    private func notifyUpdate() {
+        guard let fetchedObjects = fetchedResultsController?.fetchedObjects else { return }
+        let records = fetchedObjects.map { $0.toTrackerRecord() }
+        onUpdateCallback?(records)
     }
 }
 
+// MARK: - NSFetchedResultsControllerDelegate
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        delegate?.didUpdateRecords()
+        notifyUpdate()
     }
 }

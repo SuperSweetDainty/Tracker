@@ -1,5 +1,21 @@
 import UIKit
 
+enum TrackerFilter: CaseIterable {
+    case all
+    case today
+    case completed
+    case incomplete
+    
+    var title: String {
+        switch self {
+        case .all: return NSLocalizedString("filters.all", comment: "Все трекеры")
+        case .today: return NSLocalizedString("filters.today", comment: "Трекеры на сегодня")
+        case .completed: return NSLocalizedString("filters.completed", comment: "Завершенные")
+        case .incomplete: return NSLocalizedString("filters.incomplete", comment: "Не завершенные")
+        }
+    }
+}
+
 final class FiltersViewController: UIViewController {
     
     // MARK: - UI
@@ -17,12 +33,12 @@ final class FiltersViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = UIColor.white
+        view.backgroundColor = UIColor(named: "YPWhite")
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = NSLocalizedString("filters.title", comment: "Фильтры")
         titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        titleLabel.textColor = UIColor(resource: .ypBlack)
+        titleLabel.textColor = UIColor(named: "YPBlack")
         titleLabel.textAlignment = .center
         view.addSubview(titleLabel)
         
@@ -88,6 +104,8 @@ extension FiltersViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         selectedFilter = TrackerFilter.allCases[indexPath.row]
         tableView.reloadData()
+        
+        AnalyticsManager.shared.trackFiltersUsed(filterType: selectedFilter.title)
         onFilterSelected?(selectedFilter)
         dismiss(animated: true)
     }
@@ -114,18 +132,18 @@ final class FilterTableViewCell: UITableViewCell {
         selectionStyle = .none
         
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = UIColor(red: 0.90, green: 0.91, blue: 0.92, alpha: 0.30)
+        containerView.backgroundColor = UIColor(named: "YPBackground")
         containerView.layer.cornerRadius = 16
         contentView.addSubview(containerView)
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont.systemFont(ofSize: 17)
-        titleLabel.textColor = UIColor(resource: .ypBlack)
+        titleLabel.textColor = UIColor(named: "YPBlack")
         containerView.addSubview(titleLabel)
         
         checkmarkImageView.translatesAutoresizingMaskIntoConstraints = false
         checkmarkImageView.image = UIImage(systemName: "checkmark")
-        checkmarkImageView.tintColor = UIColor(resource: .ypBlue)
+        checkmarkImageView.tintColor = UIColor(named: "YPBlue")
         checkmarkImageView.contentMode = .scaleAspectFit
         checkmarkImageView.isHidden = true
         containerView.addSubview(checkmarkImageView)
@@ -166,7 +184,7 @@ final class FilterTableViewCell: UITableViewCell {
         if !isLast {
             let separatorView = UIView()
             separatorView.translatesAutoresizingMaskIntoConstraints = false
-            separatorView.backgroundColor = UIColor(resource: .ypGray)
+            separatorView.backgroundColor = UIColor(named: "YPGray")
             containerView.addSubview(separatorView)
             NSLayoutConstraint.activate([
                 separatorView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),

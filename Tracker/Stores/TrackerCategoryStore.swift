@@ -1,107 +1,117 @@
+import Foundation
 import CoreData
 
-protocol TrackerCategoryStoreDelegate: AnyObject {
-    func didUpdateCategories()
+protocol TrackerCategoryStoreProtocol {
+    func createCategory(title: String) -> TrackerCategory
+    func fetchCategories() -> [TrackerCategory]
+    func updateCategoryTitle(_ category: TrackerCategory, newTitle: String)
+    func deleteCategory(_ category: TrackerCategory)
+    func getCategory(by title: String) -> TrackerCategory?
+    func startObservingChanges(onUpdate: @escaping ([TrackerCategory]) -> Void)
+    func stopObservingChanges()
 }
 
-final class TrackerCategoryStore: NSObject {
-    let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>!
-    weak var delegate: TrackerCategoryStoreDelegate?
+class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
+    private let coreDataManager = CoreDataManager.shared
+    private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>?
+    private var onUpdateCallback: (([TrackerCategory]) -> Void)?
     
-    init(context: NSManagedObjectContext = CoreDataManager.shared.context) {
-        self.context = context
-        super.init()
-        setupFetchedResultsController()
+    func createCategory(title: String) -> TrackerCategory {
+        let coreDataCategory = coreDataManager.getOrCreateCategory(title: title)
+        return coreDataCategory.toTrackerCategory()
     }
     
-    private func setupFetchedResultsController() {
-        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        
-        fetchedResultsController = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        fetchedResultsController.delegate = self
+    func fetchCategories() -> [TrackerCategory] {
+        let coreDataCategories = coreDataManager.fetchCategories()
+        return coreDataCategories.map { $0.toTrackerCategory() }
+    }
+    
+    func updateCategoryTitle(_ category: TrackerCategory, newTitle: String) {
+        let request = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", category.title)
         
         do {
-            try fetchedResultsController.performFetch()
+            let coreDataCategories = try coreDataManager.context.fetch(request)
+            if let coreDataCategory = coreDataCategories.first {
+                coreDataCategory.title = newTitle
+                coreDataManager.saveContext()
+            }
         } catch {
-            print("Ошибка fetch categories: \(error)")
+            print("Error finding category to update: \(error)")
         }
     }
     
-    func fetchAll() -> [TrackerCategory] {
-        let objects = fetchedResultsController.fetchedObjects ?? []
-        return objects.map { categoryCD in
-            let trackers = (categoryCD.trackers as? Set<TrackerCoreData>)?.compactMap {
-                TrackerStore.mapToTracker($0)
-            } ?? []
-            return TrackerCategory(title: categoryCD.title ?? "", trackers: trackers)
+    func deleteCategory(_ category: TrackerCategory) {
+        let request = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", category.title)
+        
+        do {
+            let coreDataCategories = try coreDataManager.context.fetch(request)
+            if let coreDataCategory = coreDataCategories.first {
+                coreDataManager.context.delete(coreDataCategory)
+                coreDataManager.saveContext()
+            }
+        } catch {
+            print("Error finding category to delete: \(error)")
         }
     }
     
-    func create(title: String) throws -> TrackerCategoryCoreData {
-        let category = TrackerCategoryCoreData(context: context)
-        category.title = title
-        try context.save()
-        return category
-    }
-    
-    func delete(by title: String) throws {
-        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", title)
-        if let category = try context.fetch(request).first {
-            context.delete(category)
-            try context.save()
-        }
-    }
-    
-    func fetch(by title: String) throws -> TrackerCategoryCoreData? {
+    func getCategory(by title: String) -> TrackerCategory? {
         let request = TrackerCategoryCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "title == %@", title)
-        request.fetchLimit = 1
-        let result = try context.fetch(request)
-        return result.first
-    }
-    
-    func addTracker(_ tracker: Tracker, toCategory title: String) throws {
-        let categoryCD: TrackerCategoryCoreData
-        if let existing = try fetch(by: title) {
-            categoryCD = existing
-        } else {
-            categoryCD = try create(title: title)
+        
+        do {
+            let coreDataCategories = try coreDataManager.context.fetch(request)
+            return coreDataCategories.first?.toTrackerCategory()
+        } catch {
+            print("Error finding category: \(error)")
+            return nil
         }
-        
-        let trackerCD = TrackerCoreData(context: context)
-        trackerCD.identifier = tracker.id
-        trackerCD.name = tracker.name
-        trackerCD.color = tracker.color
-        trackerCD.emoji = tracker.emoji
-        trackerCD.schedule = tracker.schedule.map { $0.rawValue } as NSArray
-        
-        categoryCD.addToTrackers(trackerCD)
-        try context.save()
     }
     
-    /// Удаление трекера из категории
-    func deleteTracker(_ tracker: Tracker, fromCategory title: String) throws {
-        guard let category = try fetch(by: title),
-              let trackersSet = category.trackers as? Set<TrackerCoreData>,
-              let trackerCD = trackersSet.first(where: { $0.identifier == tracker.id })
-        else { return }
+    func startObservingChanges(onUpdate: @escaping ([TrackerCategory]) -> Void) {
+        self.onUpdateCallback = onUpdate
         
-        category.removeFromTrackers(trackerCD)
-        context.delete(trackerCD)
-        try context.save()
+        CoreDataManager.shared.ensureStoreLoaded { [weak self] in
+            guard let self = self else { return }
+            
+            let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+            
+            self.fetchedResultsController = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: CoreDataManager.shared.context,
+                sectionNameKeyPath: nil,
+                cacheName: "TrackerCategoryStore"
+            )
+            
+            self.fetchedResultsController?.delegate = self
+            
+            do {
+                try self.fetchedResultsController?.performFetch()
+                self.notifyUpdate()
+            } catch {
+                print("Error performing fetch: \(error)")
+            }
+        }
+    }
+    
+    func stopObservingChanges() {
+        fetchedResultsController?.delegate = nil
+        fetchedResultsController = nil
+        onUpdateCallback = nil
+    }
+    
+    private func notifyUpdate() {
+        guard let fetchedObjects = fetchedResultsController?.fetchedObjects else { return }
+        let categories = fetchedObjects.map { $0.toTrackerCategory() }
+        onUpdateCallback?(categories)
     }
 }
 
+// MARK: - NSFetchedResultsControllerDelegate
 extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        delegate?.didUpdateCategories()
+        notifyUpdate()
     }
 }

@@ -2,21 +2,19 @@ import UIKit
 
 final class CategoryTableViewCell: UITableViewCell {
     
-    // MARK: - UI
-    private let containerView = UIView()
-    private let titleLabel = UILabel()
-    private let checkmarkImageView = UIImageView()
+    // MARK: - UI Elements
+    private let mainContainer = UIView()
+    private let nameLabel = UILabel()
+    private let tickImageView = UIImageView()
     
     // MARK: - Properties
-    static let identifier = "CategoryTableViewCell"
+    static let identifier = "CategoryCell"
     var onLongPress: ((TrackerCategory) -> Void)?
     private var category: TrackerCategory?
     
-    // MARK: - Init
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-        addLongPressGesture()
+        setupUIComponents()
     }
     
     required init?(coder: NSCoder) {
@@ -24,90 +22,83 @@ final class CategoryTableViewCell: UITableViewCell {
     }
     
     // MARK: - Setup
-    private func setupUI() {
+    private func setupUIComponents() {
         backgroundColor = .clear
         selectionStyle = .none
         
-        // Container
-        containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = UIColor(resource: .ypGray).withAlphaComponent(0.15)
-        containerView.layer.cornerRadius = 16
-        contentView.addSubview(containerView)
+        mainContainer.translatesAutoresizingMaskIntoConstraints = false
+        mainContainer.backgroundColor = UIColor(named: "YPBackground")
+        mainContainer.layer.cornerRadius = 16
+        contentView.addSubview(mainContainer)
         
-        // Title
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        titleLabel.textColor = UIColor(resource: .ypBlack)
-        titleLabel.numberOfLines = 1
-        containerView.addSubview(titleLabel)
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(didLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        mainContainer.addGestureRecognizer(longPressGesture)
         
-        // Checkmark
-        checkmarkImageView.translatesAutoresizingMaskIntoConstraints = false
-        checkmarkImageView.image = UIImage(systemName: "checkmark")
-        checkmarkImageView.tintColor = UIColor(resource: .ypBlue)
-        checkmarkImageView.contentMode = .scaleAspectFit
-        checkmarkImageView.isHidden = true
-        containerView.addSubview(checkmarkImageView)
+        nameLabel.translatesAutoresizingMaskIntoConstraints = false
+        nameLabel.font = UIFont.systemFont(ofSize: 17)
+        nameLabel.textColor = UIColor(named: "YPBlack")
+        nameLabel.numberOfLines = 1
+        mainContainer.addSubview(nameLabel)
         
-        // Constraints
+        tickImageView.translatesAutoresizingMaskIntoConstraints = false
+        tickImageView.image = UIImage(systemName: "checkmark")
+        tickImageView.tintColor = UIColor(named: "YPBlue")
+        tickImageView.contentMode = .scaleAspectFit
+        tickImageView.isHidden = true
+        mainContainer.addSubview(tickImageView)
+        
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 0),
-            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
-            containerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            containerView.heightAnchor.constraint(equalToConstant: 75),
+            mainContainer.topAnchor.constraint(equalTo: contentView.topAnchor),
+            mainContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 0),
+            mainContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: 0),
+            mainContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            mainContainer.heightAnchor.constraint(equalToConstant: 75),
             
-            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-            titleLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: checkmarkImageView.leadingAnchor, constant: -16),
+            nameLabel.leadingAnchor.constraint(equalTo: mainContainer.leadingAnchor, constant: 16),
+            nameLabel.centerYAnchor.constraint(equalTo: mainContainer.centerYAnchor),
+            nameLabel.trailingAnchor.constraint(equalTo: tickImageView.leadingAnchor, constant: -16),
             
-            checkmarkImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-            checkmarkImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-            checkmarkImageView.widthAnchor.constraint(equalToConstant: 24),
-            checkmarkImageView.heightAnchor.constraint(equalToConstant: 24)
+            tickImageView.trailingAnchor.constraint(equalTo: mainContainer.trailingAnchor, constant: -16),
+            tickImageView.centerYAnchor.constraint(equalTo: mainContainer.centerYAnchor),
+            tickImageView.widthAnchor.constraint(equalToConstant: 24),
+            tickImageView.heightAnchor.constraint(equalToConstant: 24)
         ])
     }
     
-    private func addLongPressGesture() {
-        let gesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
-        gesture.minimumPressDuration = 0.5
-        containerView.addGestureRecognizer(gesture)
-    }
-    
-    // MARK: - Configure
+    // MARK: - Configuration
     func configure(with category: TrackerCategory, isSelected: Bool, isFirst: Bool, isLast: Bool) {
-        titleLabel.text = category.title
-        checkmarkImageView.isHidden = !isSelected
+        nameLabel.text = category.title
+        tickImageView.isHidden = !isSelected
         self.category = category
         
-        // Скругляем углы в зависимости от позиции
-        if isFirst && isLast {
-            containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
-                                                 .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else if isFirst {
-            containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        } else if isLast {
-            containerView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else {
-            containerView.layer.maskedCorners = []
+        mainContainer.subviews.forEach { subview in
+            if subview != nameLabel && subview != tickImageView {
+                subview.removeFromSuperview()
+            }
         }
         
-        // Добавляем разделитель, если не последняя
-        containerView.subviews.forEach {
-            if $0.tag == 999 { $0.removeFromSuperview() }
+        if isFirst && isLast {
+            mainContainer.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
+                                                 .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        } else if isFirst {
+            mainContainer.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        } else if isLast {
+            mainContainer.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        } else {
+            mainContainer.layer.maskedCorners = []
         }
         
         if !isLast {
             let separator = UIView()
-            separator.tag = 999
             separator.translatesAutoresizingMaskIntoConstraints = false
-            separator.backgroundColor = UIColor(resource: .ypGray).withAlphaComponent(0.3)
-            containerView.addSubview(separator)
+            separator.backgroundColor = UIColor(named: "YPGray")
+            mainContainer.addSubview(separator)
             
             NSLayoutConstraint.activate([
-                separator.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
-                separator.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
-                separator.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+                separator.leadingAnchor.constraint(equalTo: mainContainer.leadingAnchor, constant: 16),
+                separator.trailingAnchor.constraint(equalTo: mainContainer.trailingAnchor, constant: -16),
+                separator.bottomAnchor.constraint(equalTo: mainContainer.bottomAnchor),
                 separator.heightAnchor.constraint(equalToConstant: 0.5)
             ])
         }
@@ -115,13 +106,13 @@ final class CategoryTableViewCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        titleLabel.text = nil
-        checkmarkImageView.isHidden = true
+        nameLabel.text = nil
+        tickImageView.isHidden = true
         category = nil
     }
     
     // MARK: - Actions
-    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+    @objc private func didLongPress(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began, let category = category {
             onLongPress?(category)
         }
